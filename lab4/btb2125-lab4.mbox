@@ -1,0 +1,1411 @@
+From 79ef552e288cd6dbc33e2246b3bff1fa4cf8435e Mon Sep 17 00:00:00 2001
+From: Brennen Bickford <btb2125@columbia.edu>
+Date: Wed, 10 Mar 2021 21:52:21 -0500
+Subject: [PATCH 01/11] getting started, did part a
+
+---
+ README.txt | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/README.txt b/README.txt
+index 66dfd3e..92fdf17 100644
+--- a/README.txt
++++ b/README.txt
+@@ -9,3 +9,10 @@ The description should indicate whether your solution for the part is
+ working or not.  You may also want to include anything else you would
+ like to communicate to the grader such as extra functionalities you
+ implemented or how you tried to fix your non-working code.
++
++
++
++
++ 384: {Segmentation Fa} said {Core Dumped}
++ 385: {STOP TRUNCATING} said {i I I swear if this thi} //trying to be clever and had a typo:
++
+-- 
+2.17.1
+
+
+From 7bf290a758aff28ecdd2ebb1a91f5e0955573c19 Mon Sep 17 00:00:00 2001
+From: Brennen Bickford <btb2125@columbia.edu>
+Date: Thu, 11 Mar 2021 20:25:44 -0500
+Subject: [PATCH 02/11] created Makefile, created mdb-lookup.c
+
+---
+ part1/Makefile     |  20 ++++++++++++++++++++
+ part1/mdb-add      | Bin 0 -> 10425 bytes
+ part1/mdb-lookup.c |  26 ++++++++++++++++++++++++++
+ part1/my-mdb       | Bin 0 -> 241 bytes
+ 4 files changed, 46 insertions(+)
+ create mode 100644 part1/Makefile
+ create mode 100755 part1/mdb-add
+ create mode 100644 part1/mdb-lookup.c
+ create mode 100644 part1/my-mdb
+
+diff --git a/part1/Makefile b/part1/Makefile
+new file mode 100644
+index 0000000..ea37c4a
+--- /dev/null
++++ b/part1/Makefile
+@@ -0,0 +1,20 @@
++CC = gcc
++CFLAGs = -g -Wall
++
++INCLUDES = -I../../lab3/solutions/part1
++
++LDFLAGS = -g -L../../lab3/solutions/part1
++LDLIBS = -lmylist
++
++mdb-lookup:
++
++
++
++
++.PHONY: clean
++clean: 
++	rm -f *.o mdb-lookup
++
++
++
++
+diff --git a/part1/mdb-add b/part1/mdb-add
+new file mode 100755
+index 0000000000000000000000000000000000000000..8b36510373d139a62e28b12f4a6eb872131f0bf4
+GIT binary patch
+literal 10425
+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
+
+literal 0
+HcmV?d00001
+
+diff --git a/part1/mdb-lookup.c b/part1/mdb-lookup.c
+new file mode 100644
+index 0000000..9b79988
+--- /dev/null
++++ b/part1/mdb-lookup.c
+@@ -0,0 +1,26 @@
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++#include "mdb.h"
++
++
++
++
++
++int main(){
++
++
++
++
++
++
++
++
++
++
++
++
++
++
++return 0;
++}
+diff --git a/part1/my-mdb b/part1/my-mdb
+new file mode 100644
+index 0000000000000000000000000000000000000000..4e97ae354979f02d836b8ec02ddcafbab953e54f
+GIT binary patch
+literal 241
+zcmd<e&r4-M2DynvmB@S;yQDlH#st$Di76<27^ftoC>7bnM3@8`ot9r(ge;VkSyGaN
+mtPv`imRW`(nv<BDgscz7HZ(FeF*P%{urvU(7|{4I83q7#+ZR#*
+
+literal 0
+HcmV?d00001
+
+-- 
+2.17.1
+
+
+From 7261ae48c36daa0926e424114dd846773880e821 Mon Sep 17 00:00:00 2001
+From: Brennen Bickford <btb2125@columbia.edu>
+Date: Fri, 12 Mar 2021 20:37:00 -0500
+Subject: [PATCH 03/11] Got first name and mesage to print
+
+---
+ part1/Makefile     |  9 +++++++--
+ part1/mdb-lookup.c | 22 ++++++++++++++++++++++
+ 2 files changed, 29 insertions(+), 2 deletions(-)
+
+diff --git a/part1/Makefile b/part1/Makefile
+index ea37c4a..ad84ad5 100644
+--- a/part1/Makefile
++++ b/part1/Makefile
+@@ -6,7 +6,7 @@ INCLUDES = -I../../lab3/solutions/part1
+ LDFLAGS = -g -L../../lab3/solutions/part1
+ LDLIBS = -lmylist
+ 
+-mdb-lookup:
++mdb-lookup: mdb.h
+ 
+ 
+ 
+@@ -15,6 +15,11 @@ mdb-lookup:
+ clean: 
+ 	rm -f *.o mdb-lookup
+ 
+-
++.PHONY: run
++run: clean mdb-lookup
++	./mdb-lookup
++.PHONY: vg
++vg: clean mdb-lookup
++	valgrind --leak-check=yes ./mdb-lookup
+ 
+ 
+diff --git a/part1/mdb-lookup.c b/part1/mdb-lookup.c
+index 9b79988..6d6f8c6 100644
+--- a/part1/mdb-lookup.c
++++ b/part1/mdb-lookup.c
+@@ -10,12 +10,32 @@
+ int main(){
+ 
+ 
++struct MdbRec block;
+ 
++FILE *db = fopen("my-mdb","r");
+ 
+ 
+ 
++char *name;
++char *msg;
++size_t size;
+ 
++char buf[100];
++char buf2[24];
+ 
++fread((void *)buf, 40, 1, db);
++size = strlen(buf);
++//printf("String length (buf) = %ld\n" , size);
++name = buf;
++msg= (buf+size);
++printf("%s\n" , &buf[0]);
++printf("%s\n" , &buf[17]);
++
++
++
++//for (int i=0; i<sizeof(buf); i++){
++//printf("%c", buf[i]);
++//}
+ 
+ 
+ 
+@@ -23,4 +43,6 @@ int main(){
+ 
+ 
+ return 0;
++
+ }
++
+-- 
+2.17.1
+
+
+From d4eb5c2ae91639d5fb111b41a9e714b9f764413e Mon Sep 17 00:00:00 2001
+From: Brennen Bickford <btb2125@columbia.edu>
+Date: Fri, 12 Mar 2021 22:19:07 -0500
+Subject: [PATCH 04/11] Got fread() loops to work
+
+---
+ part1/mdb-lookup.c | 59 +++++++++++++++++++++++++++++++++++++++-------
+ 1 file changed, 50 insertions(+), 9 deletions(-)
+
+diff --git a/part1/mdb-lookup.c b/part1/mdb-lookup.c
+index 6d6f8c6..e599feb 100644
+--- a/part1/mdb-lookup.c
++++ b/part1/mdb-lookup.c
+@@ -2,16 +2,33 @@
+ #include <stdlib.h>
+ #include <string.h>
+ #include "mdb.h"
++#include "../../lab3/solutions/part1/mylist.h"
++
++
++
++int main(){
++
++
++
++
++
+ 
+ 
+ 
+ 
+ 
+-int main(){
+ 
+ 
+ struct MdbRec block;
+ 
++
++
++
++
++
++
++
++
+ FILE *db = fopen("my-mdb","r");
+ 
+ 
+@@ -19,17 +36,39 @@ FILE *db = fopen("my-mdb","r");
+ char *name;
+ char *msg;
+ size_t size;
++int j=0;
++char buf[40];
+ 
+-char buf[100];
+-char buf2[24];
+ 
+-fread((void *)buf, 40, 1, db);
+-size = strlen(buf);
+-//printf("String length (buf) = %ld\n" , size);
+-name = buf;
+-msg= (buf+size);
+-printf("%s\n" , &buf[0]);
++while (fread((void *) buf, 40, 1, db)){
++
++//printf("%d\n", j++);
++
++
++printf("%s " , &buf[1]);
++
+ printf("%s\n" , &buf[17]);
++//for (int i; i<100;i++)
++//{
++//	printf("%d" , sizeof(buf));
++//	buf[i]='\0';}
++}
++
++
++
++
++
++
++
++
++
++//fread((void *)buf, 40, 1, db);
++//size = strlen(buf);
++//printf("String length (buf) = %ld\n" , size);
++//name = buf;
++//msg= (buf+size);
++//printf("%s\n" , &buf[0]);
++//printf("%s\n" , &buf[17]);
+ 
+ 
+ 
+@@ -42,6 +81,8 @@ printf("%s\n" , &buf[17]);
+ 
+ 
+ 
++
++
+ return 0;
+ 
+ }
+-- 
+2.17.1
+
+
+From 1ec8041d0e1e97cd61b2f6cdf7854e17034c2e8c Mon Sep 17 00:00:00 2001
+From: Brennen Bickford <btb2125@columbia.edu>
+Date: Sat, 13 Mar 2021 10:54:23 -0500
+Subject: [PATCH 05/11] Looped records into list
+
+---
+ part1/Makefile     |  4 +--
+ part1/mdb-lookup.c | 70 ++++++++++++++++++----------------------------
+ 2 files changed, 29 insertions(+), 45 deletions(-)
+
+diff --git a/part1/Makefile b/part1/Makefile
+index ad84ad5..6d9a7e7 100644
+--- a/part1/Makefile
++++ b/part1/Makefile
+@@ -17,9 +17,9 @@ clean:
+ 
+ .PHONY: run
+ run: clean mdb-lookup
+-	./mdb-lookup
++	./mdb-lookup my-mdb
+ .PHONY: vg
+ vg: clean mdb-lookup
+-	valgrind --leak-check=yes ./mdb-lookup
++	valgrind --leak-check=yes ./mdb-lookup my-mdb
+ 
+ 
+diff --git a/part1/mdb-lookup.c b/part1/mdb-lookup.c
+index e599feb..7af8a22 100644
+--- a/part1/mdb-lookup.c
++++ b/part1/mdb-lookup.c
+@@ -6,30 +6,26 @@
+ 
+ 
+ 
+-int main(){
++int main(int argc, char ** argv){
+ 
+ 
+ 
++char *filename = argv[1];
+ 
+ 
++struct MdbRec *block;
+ 
++struct List list;
++initList(&list);
+ 
++struct Node *node;
++void *data;
+ 
+ 
+ 
++node =NULL;
+ 
+-
+-struct MdbRec block;
+-
+-
+-
+-
+-
+-
+-
+-
+-
+-FILE *db = fopen("my-mdb","r");
++FILE *db = fopen(filename,"r");
+ 
+ 
+ 
+@@ -42,40 +38,28 @@ char buf[40];
+ 
+ while (fread((void *) buf, 40, 1, db)){
+ 
+-//printf("%d\n", j++);
+-
+-
+-printf("%s " , &buf[1]);
+-
+-printf("%s\n" , &buf[17]);
+-//for (int i; i<100;i++)
+-//{
+-//	printf("%d" , sizeof(buf));
+-//	buf[i]='\0';}
+-}
+-
+-
+-
+-
++block = malloc (40);
+ 
++name = &buf[1];
++msg = &buf[17];
++char tempName[strlen(name)+1];
++char tempMsg[strlen(msg) +1];
++	for (int i=0; i<sizeof(tempName);i++){
++	tempName[i] = name[i];
++	block->name[i] = name[i];
++	}	
+ 
++	
++	for (int i=0; i<sizeof(tempMsg);i++){
++	tempMsg[i] = msg[i];
++	block->msg[i] = msg[i];
++	}
+ 
++	printf("%s  ",&(block->name));
++	printf("%s\n",&(block->msg));
++	node = addAfter(&list, node, block);
+ 
+-
+-//fread((void *)buf, 40, 1, db);
+-//size = strlen(buf);
+-//printf("String length (buf) = %ld\n" , size);
+-//name = buf;
+-//msg= (buf+size);
+-//printf("%s\n" , &buf[0]);
+-//printf("%s\n" , &buf[17]);
+-
+-
+-
+-//for (int i=0; i<sizeof(buf); i++){
+-//printf("%c", buf[i]);
+-//}
+-
++}
+ 
+ 
+ 
+-- 
+2.17.1
+
+
+From fc5abeaa79ce3897954a815595b3eb77d8a6e70e Mon Sep 17 00:00:00 2001
+From: Brennen Bickford <btb2125@columbia.edu>
+Date: Sat, 13 Mar 2021 15:47:56 -0500
+Subject: [PATCH 06/11] Search works, with some bugs and memory errors
+
+---
+ part1/mdb-lookup.c |  38 ++++++++++++++++++++++++++++++--------
+ part1/my-mdb       | Bin 241 -> 281 bytes
+ 2 files changed, 30 insertions(+), 8 deletions(-)
+
+diff --git a/part1/mdb-lookup.c b/part1/mdb-lookup.c
+index 7af8a22..62fe9bd 100644
+--- a/part1/mdb-lookup.c
++++ b/part1/mdb-lookup.c
+@@ -19,22 +19,18 @@ struct List list;
+ initList(&list);
+ 
+ struct Node *node;
+-void *data;
+-
+-
++char *data;
+ 
+ node =NULL;
+ 
+ FILE *db = fopen(filename,"r");
+ 
+-
+-
+ char *name;
+ char *msg;
+ size_t size;
+ int j=0;
+ char buf[40];
+-
++char c='\0';
+ 
+ while (fread((void *) buf, 40, 1, db)){
+ 
+@@ -55,16 +51,42 @@ char tempMsg[strlen(msg) +1];
+ 	block->msg[i] = msg[i];
+ 	}
+ 
+-	printf("%s  ",&(block->name));
+-	printf("%s\n",&(block->msg));
+ 	node = addAfter(&list, node, block);
+ 
+ }
+ 
++struct MdbRec *test;
++
++name = test->name;
++
++printf("Type word: ");
++char input[1000];
++char term[5];
++char *star;
++
++star=  fgets(input,1000,stdin);
++
++for (int i=0; i<5; i++){
++
++	if(input[i]=='\n'){
++		term[i]='\0';
++	}else{
++
++	term[i] = input[i];
++	}
++}
++
++while(test = popFront(&list)){
++j++;
++if (strstr(test->name,term) || strstr(test->msg, term) || input[0]=='\0'){
++	printf("%d: {%s} said {%s}\n",j,test->name,test->msg);
+ 
+ 
++}
+ 
++free(test);
+ 
++}
+ 
+ 
+ return 0;
+diff --git a/part1/my-mdb b/part1/my-mdb
+index 4e97ae354979f02d836b8ec02ddcafbab953e54f..8a1411ebfc643b52084dfd9dd9f442bb7ec2920d 100644
+GIT binary patch
+delta 28
+jcmey!IFo6@M~<}2vecsT^3;h3#W~H)Ei4TzEzB7Jr8^0(
+
+delta 6
+NcmbQq^pSDGM*s<a0}lWI
+
+-- 
+2.17.1
+
+
+From 515931f7f427d68d978fa7611f154dcf375f37ff Mon Sep 17 00:00:00 2001
+From: Brennen Bickford <btb2125@columbia.edu>
+Date: Sat, 13 Mar 2021 18:58:14 -0500
+Subject: [PATCH 07/11] Formatted output, created loop & stop,  fixed memory
+ leaks, still have vg errors
+
+---
+ part1/Makefile     |   2 +-
+ part1/mdb-lookup.c |  73 +++++++++++++++++++++++++++------------------
+ part1/my-mdb       | Bin 281 -> 22800 bytes
+ 3 files changed, 45 insertions(+), 30 deletions(-)
+
+diff --git a/part1/Makefile b/part1/Makefile
+index 6d9a7e7..341e51b 100644
+--- a/part1/Makefile
++++ b/part1/Makefile
+@@ -20,6 +20,6 @@ run: clean mdb-lookup
+ 	./mdb-lookup my-mdb
+ .PHONY: vg
+ vg: clean mdb-lookup
+-	valgrind --leak-check=yes ./mdb-lookup my-mdb
++	valgrind --leak-check=yes --track-origins=yes ./mdb-lookup my-mdb
+ 
+ 
+diff --git a/part1/mdb-lookup.c b/part1/mdb-lookup.c
+index 62fe9bd..0422c84 100644
+--- a/part1/mdb-lookup.c
++++ b/part1/mdb-lookup.c
+@@ -8,7 +8,8 @@
+ 
+ int main(int argc, char ** argv){
+ 
+-
++char *br;
++do{
+ 
+ char *filename = argv[1];
+ 
+@@ -28,43 +29,52 @@ FILE *db = fopen(filename,"r");
+ char *name;
+ char *msg;
+ size_t size;
+-int j=0;
+-char buf[40];
++int j=0
++	
++	;
++char buf[100];
+ char c='\0';
+-
++//fread((void *) buf, 1,1,db);
+ while (fread((void *) buf, 40, 1, db)){
+ 
+-block = malloc (40);
++	block = malloc (40);
+ 
+-name = &buf[1];
+-msg = &buf[17];
+-char tempName[strlen(name)+1];
+-char tempMsg[strlen(msg) +1];
+-	for (int i=0; i<sizeof(tempName);i++){
+-	tempName[i] = name[i];
+-	block->name[i] = name[i];
+-	}	
++	name = &buf[0];
++	msg = &buf[16];
++	char tempName[strlen(name)+1];
++	char tempMsg[strlen(msg)+1];
++		for (int i=0; i<sizeof(tempName);i++){
++		tempName[i] = name[i];
++		block->name[i] = name[i];
++		}	
+ 
+ 	
+-	for (int i=0; i<sizeof(tempMsg);i++){
+-	tempMsg[i] = msg[i];
+-	block->msg[i] = msg[i];
+-	}
++		for (int i=0; i<sizeof(tempMsg);i++){
++		tempMsg[i] = msg[i];
++		block->msg[i] = msg[i];
++		}
+ 
+ 	node = addAfter(&list, node, block);
+-
+ }
+ 
+ struct MdbRec *test;
+ 
+-name = test->name;
+ 
+-printf("Type word: ");
+ char input[1000];
++
+ char term[5];
+-char *star;
+ 
+-star=  fgets(input,1000,stdin);
++input[0] = 't';
++
++printf("lookup: ");
++if (fgets(input,1000,stdin)==NULL){
++	printf("\n");
++	br = NULL;
++	break;
++	
++}
++
++
+ 
+ for (int i=0; i<5; i++){
+ 
+@@ -77,16 +87,21 @@ for (int i=0; i<5; i++){
+ }
+ 
+ while(test = popFront(&list)){
+-j++;
+-if (strstr(test->name,term) || strstr(test->msg, term) || input[0]=='\0'){
+-	printf("%d: {%s} said {%s}\n",j,test->name,test->msg);
+-
+-
+-}
++	j++;
++	if (strstr(test->name,term) || strstr(test->msg, term) || input[0]=='\0'){
++		if(j<10)
++			printf(" ");
++		if (j<100)
++			printf(" ");
++
++		printf("%d: {%s} said {%s}\n",j,test->name,test->msg);
++	}	
+ 
+ free(test);
+-
+ }
++fclose(db);
++
++}while(br);
+ 
+ 
+ return 0;
+diff --git a/part1/my-mdb b/part1/my-mdb
+index 8a1411ebfc643b52084dfd9dd9f442bb7ec2920d..70da373e3dd95722b23a5ca15ea52af688477ba9 100644
+GIT binary patch
+literal 22800
+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
+GlK%#Ceimy0
+
+literal 281
+zcmZupTMB?65Zv!h(_1}`k)faoVoA4;q>WYDpLy*}<97x0oD3J$$Yb(IGitdO8b#DW
+y(M5?tg_}PDwXBKJ(&8I#<}6$*-9mfFyM7p_nQ_r(29?GHp1qLLxB2%cID;G2J0F7p
+
+-- 
+2.17.1
+
+
+From ddd2a6dfbb6676972045b470ccb9640bc6a6a0c9 Mon Sep 17 00:00:00 2001
+From: Brennen Bickford <btb2125@columbia.edu>
+Date: Sat, 13 Mar 2021 19:52:33 -0500
+Subject: [PATCH 08/11] Errors resolved, zombies added
+
+---
+ part1/mdb-lookup.c | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/part1/mdb-lookup.c b/part1/mdb-lookup.c
+index 0422c84..868a2b4 100644
+--- a/part1/mdb-lookup.c
++++ b/part1/mdb-lookup.c
+@@ -7,11 +7,11 @@
+ 
+ 
+ int main(int argc, char ** argv){
+-
+-char *br;
++//zombies
++char *br = "temp";
+ do{
+-
+ char *filename = argv[1];
++FILE *db = fopen(filename,"r");
+ 
+ 
+ struct MdbRec *block;
+@@ -24,7 +24,6 @@ char *data;
+ 
+ node =NULL;
+ 
+-FILE *db = fopen(filename,"r");
+ 
+ char *name;
+ char *msg;
+@@ -34,7 +33,6 @@ int j=0
+ 	;
+ char buf[100];
+ char c='\0';
+-//fread((void *) buf, 1,1,db);
+ while (fread((void *) buf, 40, 1, db)){
+ 
+ 	block = malloc (40);
+@@ -60,7 +58,7 @@ while (fread((void *) buf, 40, 1, db)){
+ struct MdbRec *test;
+ 
+ 
+-char input[1000];
++char input[1000] = "temps";
+ 
+ char term[5];
+ 
+@@ -70,6 +68,9 @@ printf("lookup: ");
+ if (fgets(input,1000,stdin)==NULL){
+ 	printf("\n");
+ 	br = NULL;
++	while(test = popFront(&list))
++		free(test);
++	fclose(db);
+ 	break;
+ 	
+ }
+@@ -100,7 +101,6 @@ while(test = popFront(&list)){
+ free(test);
+ }
+ fclose(db);
+-
+ }while(br);
+ 
+ 
+-- 
+2.17.1
+
+
+From 34e589c4b803eab0dfc071abc106e3511d685a0c Mon Sep 17 00:00:00 2001
+From: Brennen Bickford <btb2125@columbia.edu>
+Date: Sat, 13 Mar 2021 20:31:05 -0500
+Subject: [PATCH 09/11] Cleaned up code, added comments, removed zombies
+
+---
+ part1/mdb-lookup.c | 148 ++++++++++++++++++++-------------------------
+ 1 file changed, 65 insertions(+), 83 deletions(-)
+
+diff --git a/part1/mdb-lookup.c b/part1/mdb-lookup.c
+index 868a2b4..0ad41b0 100644
+--- a/part1/mdb-lookup.c
++++ b/part1/mdb-lookup.c
+@@ -4,105 +4,87 @@
+ #include "mdb.h"
+ #include "../../lab3/solutions/part1/mylist.h"
+ 
+-
+-
+ int main(int argc, char ** argv){
+-//zombies
+-char *br = "temp";
+-do{
+-char *filename = argv[1];
+-FILE *db = fopen(filename,"r");
+-
+-
+-struct MdbRec *block;
+-
+-struct List list;
+-initList(&list);
+-
+-struct Node *node;
+-char *data;
+-
+-node =NULL;
+-
+-
+-char *name;
+-char *msg;
+-size_t size;
+-int j=0
+ 	
+-	;
+-char buf[100];
+-char c='\0';
+-while (fread((void *) buf, 40, 1, db)){
+-
+-	block = malloc (40);
+-
+-	name = &buf[0];
+-	msg = &buf[16];
+-	char tempName[strlen(name)+1];
+-	char tempMsg[strlen(msg)+1];
+-		for (int i=0; i<sizeof(tempName);i++){
+-		tempName[i] = name[i];
+-		block->name[i] = name[i];
+-		}	
++	char *br = "temp";//used to break loop at the end
++	do{
++		char *filename = argv[1];
++		FILE *db = fopen(filename,"r");
+ 
+-	
+-		for (int i=0; i<sizeof(tempMsg);i++){
+-		tempMsg[i] = msg[i];
+-		block->msg[i] = msg[i];
+-		}
++		struct MdbRec *block;
+ 
+-	node = addAfter(&list, node, block);
+-}
++		struct List list;
++		initList(&list);
+ 
+-struct MdbRec *test;
++		struct Node *node=NULL;
++		char *name;
++		char *msg;
++		int j=0;
++		char buf[100];
+ 
++		while (fread((void *) buf, 40, 1, db)){
+ 
+-char input[1000] = "temps";
+-
+-char term[5];
+-
+-input[0] = 't';
+-
+-printf("lookup: ");
+-if (fgets(input,1000,stdin)==NULL){
+-	printf("\n");
+-	br = NULL;
+-	while(test = popFront(&list))
+-		free(test);
+-	fclose(db);
+-	break;
++			block = malloc (40);
++			if (block==NULL){
++				perror("malloc return NULL");
++				exit(1);
++			}
+ 	
+-}
+-
++			name = &buf[0];
++			msg = &buf[16];
++
++			for (int i=0; i<strlen(name)+1;i++){
++				block->name[i] = name[i];
++			}	
++
++			for (int i=0; i<strlen(msg)+1;i++){
++				block->msg[i] = msg[i];
++			}
++		
++			node = addAfter(&list, node, block);
++		}
+ 
++		char input[1000] = "temps"; //Had to initialize this string
++		char term[5];
+ 
+-for (int i=0; i<5; i++){
++		input[0] = 't';
++		printf("lookup: ");
+ 
+-	if(input[i]=='\n'){
+-		term[i]='\0';
+-	}else{
++		if (fgets(input,1000,stdin)==NULL){ //catches if Ctrl+D is pressed and frees memory early
++			printf("\n");
++			br = NULL;
++			while(block = popFront(&list))
++				free(block);
++			fclose(db);
++			break;
++		}
+ 
+-	term[i] = input[i];
+-	}
+-}
++		for (int i=0; i<5; i++){
+ 
+-while(test = popFront(&list)){
+-	j++;
+-	if (strstr(test->name,term) || strstr(test->msg, term) || input[0]=='\0'){
+-		if(j<10)
+-			printf(" ");
+-		if (j<100)
+-			printf(" ");
++			if(input[i]=='\n'){//catches if enter is pressed
++				term[i]='\0';
++			}else{
++				term[i] = input[i];
++			}
++		}
+ 
+-		printf("%d: {%s} said {%s}\n",j,test->name,test->msg);
+-	}	
++		while(block = popFront(&list)){
++			j++;
++			if (strstr(block->name,term) || strstr(block->msg, term) || input[0]=='\0'){
++				if(j<10)//gives proper spacing before single digits
++					printf(" ");
++				if (j<100)
++					printf(" ");
++		
++				printf("%d: {%s} said {%s}\n",j,block->name,block->msg);
++			}	
++
++			free(block);
++		}
+ 
+-free(test);
+-}
+-fclose(db);
+-}while(br);
++		fclose(db);
+ 
++	}while(br);
+ 
+ return 0;
+ 
+-- 
+2.17.1
+
+
+From 9c9c45f8c991a2b42f6b7e4597c237a5134b7141 Mon Sep 17 00:00:00 2001
+From: Brennen Bickford <btb2125@columbia.edu>
+Date: Sat, 13 Mar 2021 21:19:44 -0500
+Subject: [PATCH 10/11] Fixed path issue, cleaned code more, ready to submit
+
+---
+ part1/Makefile     | 11 +++++------
+ part1/mdb-lookup.c | 24 ++++++++++++------------
+ 2 files changed, 17 insertions(+), 18 deletions(-)
+
+diff --git a/part1/Makefile b/part1/Makefile
+index 341e51b..7951aaf 100644
+--- a/part1/Makefile
++++ b/part1/Makefile
+@@ -1,19 +1,18 @@
+-CC = gcc
+-CFLAGs = -g -Wall
++CC = gcc $(INCLUDES)
++CFLAGs = -g -Wall $(INCLUDES)
+ 
+ INCLUDES = -I../../lab3/solutions/part1
+ 
+ LDFLAGS = -g -L../../lab3/solutions/part1
+ LDLIBS = -lmylist
+ 
+-mdb-lookup: mdb.h
+-
+-
+-
++mdb-lookup: mdb.h 
+ 
+ .PHONY: clean
+ clean: 
+ 	rm -f *.o mdb-lookup
++.PHONY:all
++all: clean mdb-lookup
+ 
+ .PHONY: run
+ run: clean mdb-lookup
+diff --git a/part1/mdb-lookup.c b/part1/mdb-lookup.c
+index 0ad41b0..928ca46 100644
+--- a/part1/mdb-lookup.c
++++ b/part1/mdb-lookup.c
+@@ -2,29 +2,30 @@
+ #include <stdlib.h>
+ #include <string.h>
+ #include "mdb.h"
+-#include "../../lab3/solutions/part1/mylist.h"
++#include "mylist.h"
+ 
+ int main(int argc, char ** argv){
+ 	
+ 	char *br = "temp";//used to break loop at the end
++
+ 	do{
+ 		char *filename = argv[1];
+ 		FILE *db = fopen(filename,"r");
+ 
+-		struct MdbRec *block;
+-
+ 		struct List list;
+ 		initList(&list);
+ 
+ 		struct Node *node=NULL;
++		struct MdbRec *block;
++
+ 		char *name;
+ 		char *msg;
+ 		int j=0;
+-		char buf[100];
++		char buf[40];
+ 
+-		while (fread((void *) buf, 40, 1, db)){
++		while (fread((void *) buf, 40, 1, db)){ //creates each MdbRec and assigns in linked list
+ 
+-			block = malloc (40);
++			block = malloc(40);
+ 			if (block==NULL){
+ 				perror("malloc return NULL");
+ 				exit(1);
+@@ -44,10 +45,9 @@ int main(int argc, char ** argv){
+ 			node = addAfter(&list, node, block);
+ 		}
+ 
+-		char input[1000] = "temps"; //Had to initialize this string
++		char input[1000] = "temps"; //Had to initialize this string to avoid errors
+ 		char term[5];
+ 
+-		input[0] = 't';
+ 		printf("lookup: ");
+ 
+ 		if (fgets(input,1000,stdin)==NULL){ //catches if Ctrl+D is pressed and frees memory early
+@@ -59,9 +59,9 @@ int main(int argc, char ** argv){
+ 			break;
+ 		}
+ 
+-		for (int i=0; i<5; i++){
++		for (int i=0; i<5; i++){//condenses input into 5 char array
+ 
+-			if(input[i]=='\n'){//catches if enter is pressed
++			if(input[i]=='\n'){//catches if enter was pressed
+ 				term[i]='\0';
+ 			}else{
+ 				term[i] = input[i];
+@@ -70,8 +70,8 @@ int main(int argc, char ** argv){
+ 
+ 		while(block = popFront(&list)){
+ 			j++;
+-			if (strstr(block->name,term) || strstr(block->msg, term) || input[0]=='\0'){
+-				if(j<10)//gives proper spacing before single digits
++			if (strstr(block->name,term) || strstr(block->msg, term) || input[0]=='\0'){//prints matching records or all records  
++				if(j<10)//gives proper spacing before digits to match Jae's format 		   
+ 					printf(" ");
+ 				if (j<100)
+ 					printf(" ");
+-- 
+2.17.1
+
+
+From c0a10e174046683b5f503eb5f8642051d8b9a2b9 Mon Sep 17 00:00:00 2001
+From: Brennen Bickford <btb2125@columbia.edu>
+Date: Sat, 13 Mar 2021 21:25:30 -0500
+Subject: [PATCH 11/11] Updated README
+
+---
+ README.txt | 53 +++++++++++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 51 insertions(+), 2 deletions(-)
+
+diff --git a/README.txt b/README.txt
+index 92fdf17..3ce12e7 100644
+--- a/README.txt
++++ b/README.txt
+@@ -9,10 +9,59 @@ The description should indicate whether your solution for the part is
+ working or not.  You may also want to include anything else you would
+ like to communicate to the grader such as extra functionalities you
+ implemented or how you tried to fix your non-working code.
++----------------------------------------------------------------
++Brennen Bickford
++btb2125
++lab 4
+ 
++Part 1:
+ 
++(a) Here is what I input into class database:
++ 384: {Segmentation Fa} said {Core Dumped}
++ 385: {STOP TRUNCATING} said {i I I swear if this thi} //trying to be clever and had a typos
+ 
+ 
+- 384: {Segmentation Fa} said {Core Dumped}
+- 385: {STOP TRUNCATING} said {i I I swear if this thi} //trying to be clever and had a typo:
++(b) Code should work as expected.
++
++Valgrind:
++==10730== Memcheck, a memory error detector
++==10730== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
++==10730== Using Valgrind-3.13.0 and LibVEX; rerun with -h for copyright info
++==10730== Command: ./mdb-lookup my-mdb
++==10730==
++lookup: one
++  4: {AP sucks} said {no one ever}
++ 23: {adiba} said {hello everyone!}
++ 37: {E.T.} said {phone home}
++ 51: {aliza} said {hello everyone}
++ 69: {Anna} said {hello everyone!}
++ 83: {hi} said {everyone}
++ 84: {Shivansh} said {Hi everyone!}
++105: {lee bollinger} said {give me your money >:)}
++112: {no one} said {i'm broke}
++257: {someone} said {I love this class}
++295: {Judy} said {Hello everyone!}
++305: {Hazel} said {Hi everyone}
++314: {William Hammond} said {Can anyone hear me?}
++370: {Vito Corleone} said {offer you cant refuse}
++449: {Someone} said {Lab 4, here I come!}
++451: {Someone again} said {I said, I'm coming!}
++453: {Someone later} said {Oups, deadline!}
++459: {yoo} said {any one hasn't start do}
++466: {yao} said {anyone likes dimsum?}
++469: {Adele} said {Someone else used my na}
++491: {Maximilian} said {Hello everyone}
++516: {Carlos} said {Hello Everyone}
++522: {Bianca A} said {Part1(a) done}
++546: {someone} said {interesting stuff}
++lookup:
++==10730==
++==10730== HEAP SUMMARY:
++==10730==     in use at exit: 0 bytes in 0 blocks
++==10730==   total heap usage: 2,286 allocs, 2,286 frees, 83,376 bytes allocated
++==10730==
++==10730== All heap blocks were freed -- no leaks are possible
++==10730==
++==10730== For counts of detected and suppressed errors, rerun with: -v
++==10730== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+ 
+-- 
+2.17.1
+

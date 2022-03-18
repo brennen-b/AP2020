@@ -1,0 +1,669 @@
+From c2d6c9e2b175480152f0a8913f75ca607f8987bb Mon Sep 17 00:00:00 2001
+From: Brennen Bickford <btb2125@columbia.edu>
+Date: Thu, 18 Mar 2021 15:26:43 -0400
+Subject: [PATCH 1/6] Got part 1(a) working
+
+---
+ README.txt                    |  3 +++
+ part1/mdb-lookup-server-nc.sh | 19 +++++++++++++++++++
+ 2 files changed, 22 insertions(+)
+ create mode 100644 README.txt
+ create mode 100755 part1/mdb-lookup-server-nc.sh
+
+diff --git a/README.txt b/README.txt
+new file mode 100644
+index 0000000..a15982e
+--- /dev/null
++++ b/README.txt
+@@ -0,0 +1,3 @@
++Brennen Bickford
++btb2125
++
+diff --git a/part1/mdb-lookup-server-nc.sh b/part1/mdb-lookup-server-nc.sh
+new file mode 100755
+index 0000000..9348c21
+--- /dev/null
++++ b/part1/mdb-lookup-server-nc.sh
+@@ -0,0 +1,19 @@
++#!/bin/sh
++ps -f
++
++PID="mypipe-$$"
++
++echo "$PID"
++
++MYPATH="/home/jae/cs3157-pub/bin/mdb-lookup-cs3157"
++
++#on_ctrl_c(){
++#	echo "Ignoring Ctrl-C"
++#}
++
++mkfifo "$PID"
++
++cat "$PID" | nc -l 42572 | "$MYPATH" > "$PID"
++
++#trap on_ctrl_c INT
++rm "$PID"
+-- 
+2.17.1
+
+
+From ed67c735b363805341b024426efe6fb16199ecf9 Mon Sep 17 00:00:00 2001
+From: Brennen Bickford <btb2125@columbia.edu>
+Date: Fri, 19 Mar 2021 17:56:46 -0400
+Subject: [PATCH 2/6] Did part 1(b), created Makefile, started 1(c)
+
+---
+ README.txt                     | 13 +++++++++++++
+ part1/Makefile                 | 15 +++++++++++++++
+ part1/mdb-lookup-server-nc-1.c |  0
+ part1/mdb-lookup-server-nc-2.c |  9 +++++++++
+ part1/mdb-lookup-server-nc.sh  | 13 +++++++------
+ 5 files changed, 44 insertions(+), 6 deletions(-)
+ create mode 100644 part1/Makefile
+ mode change 100644 => 100755 part1/mdb-lookup-server-nc-1.c
+ create mode 100644 part1/mdb-lookup-server-nc-2.c
+
+diff --git a/README.txt b/README.txt
+index a15982e..d3e571c 100644
+--- a/README.txt
++++ b/README.txt
+@@ -1,3 +1,16 @@
+ Brennen Bickford
+ btb2125
+ 
++
++
++
++3140 18901 18901 18901 ?           -1 Ss       0   0:00  \_ sshd: btb2125 [priv]
++18901 19741 18901 18901 ?           -1 S     4572   0:00  |   \_ sshd: btb2125@pts/158
++19741 20673 20673 20673 pts/158   9151 Ss    4572   0:00  |       \_ -bash
++20673  9151  9151 20673 pts/158   9151 S+    4572   0:00  |           \_ ./mdb-lookup-server-nc-1 42572
++ 9151  9157  9151 20673 pts/158   9151 S+    4572   0:00  |               \_ /bin/sh ./mdb-lookup-server-nc.sh 42572
++ 9157 16397  9151 20673 pts/158   9151 S+    4572   0:00  |                   \_ cat mypipe-9157
++ 9157 16398  9151 20673 pts/158   9151 S+    4572   0:00  |                   \_ nc -l 42572
++ 9157 16399  9151 20673 pts/158   9151 S+    4572   0:00  |                   \_ /bin/sh /home/jae/cs3157-pub/bin/mdb-lookup-cs3157
++16399 16400  9151 20673 pts/158   9151 S+    4572   0:00  |                       \_ /home/jae/cs3157-pub/bin/mdb-lookup /home/jae/cs3157-pub/bin/mdb-cs3157
++
+diff --git a/part1/Makefile b/part1/Makefile
+new file mode 100644
+index 0000000..627751a
+--- /dev/null
++++ b/part1/Makefile
+@@ -0,0 +1,15 @@
++CC= gcc
++CFLAGS= -g -Wall
++
++
++
++mdb-lookup-server-nc-1: 
++
++
++
++
++.PHONY: clean
++clean: 
++	rm -f *.o mdb-lookup-server-nc-1.out
++
++
+diff --git a/part1/mdb-lookup-server-nc-1.c b/part1/mdb-lookup-server-nc-1.c
+old mode 100644
+new mode 100755
+diff --git a/part1/mdb-lookup-server-nc-2.c b/part1/mdb-lookup-server-nc-2.c
+new file mode 100644
+index 0000000..2f394c5
+--- /dev/null
++++ b/part1/mdb-lookup-server-nc-2.c
+@@ -0,0 +1,9 @@
++#include <stdio.h>
++#include <stdlib.h>
++#include <sys/wait.h>
++#include <sys/types.h>
++#include <unistd.h>
++
++
++
++
+diff --git a/part1/mdb-lookup-server-nc.sh b/part1/mdb-lookup-server-nc.sh
+index 9348c21..b97ef63 100755
+--- a/part1/mdb-lookup-server-nc.sh
++++ b/part1/mdb-lookup-server-nc.sh
+@@ -1,5 +1,5 @@
+ #!/bin/sh
+-ps -f
++
+ 
+ PID="mypipe-$$"
+ 
+@@ -7,13 +7,14 @@ echo "$PID"
+ 
+ MYPATH="/home/jae/cs3157-pub/bin/mdb-lookup-cs3157"
+ 
+-#on_ctrl_c(){
+-#	echo "Ignoring Ctrl-C"
+-#}
++on_ctrl_c(){
++	echo "Ignoring Ctrl-C"
++}
++read -p "port number: " PORT 
+ 
+ mkfifo "$PID"
+ 
+-cat "$PID" | nc -l 42572 | "$MYPATH" > "$PID"
++trap on_ctrl_c INT
++cat "$PID" | nc -l "$PORT" | "$MYPATH" > "$PID"
+ 
+-#trap on_ctrl_c INT
+ rm "$PID"
+-- 
+2.17.1
+
+
+From 2536c201c90e708df61c404af90e0a7c94227bb7 Mon Sep 17 00:00:00 2001
+From: Brennen Bickford <btb2125@columbia.edu>
+Date: Fri, 19 Mar 2021 20:16:44 -0400
+Subject: [PATCH 3/6] Used nc-1 as skeleton code, got nc-2 to operate without
+ loop
+
+---
+ part1/Makefile                 |  8 +++++--
+ part1/mdb-lookup-server-nc-1.c |  0
+ part1/mdb-lookup-server-nc-2.c | 40 ++++++++++++++++++++++++++++++++++
+ part1/mdb-lookup-server-nc.sh  |  2 +-
+ 4 files changed, 47 insertions(+), 3 deletions(-)
+ mode change 100755 => 100644 part1/mdb-lookup-server-nc-1.c
+
+diff --git a/part1/Makefile b/part1/Makefile
+index 627751a..c312fff 100644
+--- a/part1/Makefile
++++ b/part1/Makefile
+@@ -3,13 +3,17 @@ CFLAGS= -g -Wall
+ 
+ 
+ 
+-mdb-lookup-server-nc-1: 
++mdb-lookup-server-nc-2: 
+ 
+ 
+ 
+ 
+ .PHONY: clean
+ clean: 
+-	rm -f *.o mdb-lookup-server-nc-1.out
++	rm -f *.o mdb-lookup-server-nc-2
++
++.PHONY: run
++run: clean mdb-lookup-server-nc-2
++	./mdb-lookup-server-nc-2
+ 
+ 
+diff --git a/part1/mdb-lookup-server-nc-1.c b/part1/mdb-lookup-server-nc-1.c
+old mode 100755
+new mode 100644
+diff --git a/part1/mdb-lookup-server-nc-2.c b/part1/mdb-lookup-server-nc-2.c
+index 2f394c5..eba8b37 100644
+--- a/part1/mdb-lookup-server-nc-2.c
++++ b/part1/mdb-lookup-server-nc-2.c
+@@ -6,4 +6,44 @@
+ 
+ 
+ 
++static void die(const char *s)
++{
++    perror(s);
++    exit(1);
++}
++
++int main()
++{
++
++    char port[100];
++    	printf("port number: \n");
++    	 scanf("%s", port);
++
++	printf("you typed %s.\n", port);
++
++
++
++    pid_t pid = fork();
++    if (pid < 0) {
++        die("fork failed");
++    } else if (pid == 0) {
++        // child process
++        fprintf(stderr, "[pid=%d] ", (int)getpid());
++        fprintf(stderr, "mdb-lookup-server started on port %s\n", port);
++        execl("./mdb-lookup-server-nc.sh", "mdb-lookup-server-nc.sh",
++                port, (char *)0);
++        die("execl failed");
++    } else {
++        // parent process
++        if (waitpid(pid,
++                    NULL, // no status
++                    0) // no options
++                != pid)
++            die("waitpid failed");
++        fprintf(stderr, "[pid=%d] ", (int)pid);
++        fprintf(stderr, "mdb-lookup-server terminated\n");
++    }
++
++    return 0;
++}
+ 
+diff --git a/part1/mdb-lookup-server-nc.sh b/part1/mdb-lookup-server-nc.sh
+index b97ef63..05320ec 100755
+--- a/part1/mdb-lookup-server-nc.sh
++++ b/part1/mdb-lookup-server-nc.sh
+@@ -10,7 +10,7 @@ MYPATH="/home/jae/cs3157-pub/bin/mdb-lookup-cs3157"
+ on_ctrl_c(){
+ 	echo "Ignoring Ctrl-C"
+ }
+-read -p "port number: " PORT 
++read -r  PORT 
+ 
+ mkfifo "$PID"
+ 
+-- 
+2.17.1
+
+
+From 298947d9e76410a75e9c690cb3676de81e4c61a8 Mon Sep 17 00:00:00 2001
+From: Brennen Bickford <btb2125@columbia.edu>
+Date: Sat, 20 Mar 2021 15:41:46 -0400
+Subject: [PATCH 4/6] Nc-2 appears to be working, except when Enter is pressed
+
+---
+ part1/mdb-lookup-server-nc-2.c | 60 ++++++++++++++++++++++------------
+ part1/mdb-lookup-server-nc.sh  | 10 +++---
+ 2 files changed, 44 insertions(+), 26 deletions(-)
+
+diff --git a/part1/mdb-lookup-server-nc-2.c b/part1/mdb-lookup-server-nc-2.c
+index eba8b37..b70ab84 100644
+--- a/part1/mdb-lookup-server-nc-2.c
++++ b/part1/mdb-lookup-server-nc-2.c
+@@ -12,38 +12,58 @@ static void die(const char *s)
+     exit(1);
+ }
+ 
+-int main()
++int main(int argc, char * argv[])
+ {
++	
++	int br=1;
++    	int j=0;
++	char port[100];
++	pid_t list[100];
+ 
+-    char port[100];
+-    	printf("port number: \n");
+-    	 scanf("%s", port);
++	while(br){
+ 
+-	printf("you typed %s.\n", port);
+ 
++for (int i=0;i<j;i++){
++	pid_t pid;
++	if( (pid = waitpid( (pid_t) -1, NULL, WNOHANG))!=0){
++	       fprintf(stderr, "[pid=%d] ", (int)pid);
++   	       fprintf(stderr, "mdb-lookup-server terminated\n");
++	}
++}
++    	printf("port number: ");
++    	scanf("%s", port);
++	argv[1] = port;
++
++
++/*for (int i=0; i<j; i++){
++	pid_t pid = list[i];
++	if (pid==0){	
++
++       fprintf(stderr, "[pid=%d] ", (int)pid);
++       fprintf(stderr, "mdb-lookup-server terminated\n");
++
++	}
++	}*/
+ 
+ 
+-    pid_t pid = fork();
+-    if (pid < 0) {
++
++      	list[j++] = fork();
++
++  	  if (list[j-1] < 0) {
+         die("fork failed");
+-    } else if (pid == 0) {
++	    
++    }else if (list[j-1]== 0) {
++
+         // child process
++//	printf("***ARGV[1]= %s\n",argv[1]);    
++//	printf("you typed %s.\n", port);
+         fprintf(stderr, "[pid=%d] ", (int)getpid());
+-        fprintf(stderr, "mdb-lookup-server started on port %s\n", port);
++        fprintf(stderr, "mdb-lookup-server started on port %s\n", argv[1]);
+         execl("./mdb-lookup-server-nc.sh", "mdb-lookup-server-nc.sh",
+-                port, (char *)0);
++                 argv[1], (char *)0);
+         die("execl failed");
+-    } else {
+-        // parent process
+-        if (waitpid(pid,
+-                    NULL, // no status
+-                    0) // no options
+-                != pid)
+-            die("waitpid failed");
+-        fprintf(stderr, "[pid=%d] ", (int)pid);
+-        fprintf(stderr, "mdb-lookup-server terminated\n");
+     }
+-
++	}
+     return 0;
+ }
+ 
+diff --git a/part1/mdb-lookup-server-nc.sh b/part1/mdb-lookup-server-nc.sh
+index 05320ec..74bd4c8 100755
+--- a/part1/mdb-lookup-server-nc.sh
++++ b/part1/mdb-lookup-server-nc.sh
+@@ -1,16 +1,14 @@
+ #!/bin/sh
+-
+-
++#echo "$*"
++PORT="$*"
+ PID="mypipe-$$"
+-
+-echo "$PID"
+-
++#echo "***************$PID"
++#echo "*************************** $PORT"
+ MYPATH="/home/jae/cs3157-pub/bin/mdb-lookup-cs3157"
+ 
+ on_ctrl_c(){
+ 	echo "Ignoring Ctrl-C"
+ }
+-read -r  PORT 
+ 
+ mkfifo "$PID"
+ 
+-- 
+2.17.1
+
+
+From 96d570a56cdd7f1c6110346c3127fe379f2f4678 Mon Sep 17 00:00:00 2001
+From: Brennen Bickford <btb2125@columbia.edu>
+Date: Sat, 20 Mar 2021 22:29:34 -0400
+Subject: [PATCH 5/6] Program working correctly, valgrind clean
+
+---
+ part1/Makefile                 |  4 +++
+ part1/mdb-lookup-server-nc-2.c | 46 ++++++++++++++++++----------------
+ 2 files changed, 29 insertions(+), 21 deletions(-)
+
+diff --git a/part1/Makefile b/part1/Makefile
+index c312fff..63dabeb 100644
+--- a/part1/Makefile
++++ b/part1/Makefile
+@@ -16,4 +16,8 @@ clean:
+ run: clean mdb-lookup-server-nc-2
+ 	./mdb-lookup-server-nc-2
+ 
++.PHONY: vg
++vg: clean mdb-lookup-server-nc-2
++	valgrind --leak-check=yes ./mdb-lookup-server-nc-2
++
+ 
+diff --git a/part1/mdb-lookup-server-nc-2.c b/part1/mdb-lookup-server-nc-2.c
+index b70ab84..df1cf23 100644
+--- a/part1/mdb-lookup-server-nc-2.c
++++ b/part1/mdb-lookup-server-nc-2.c
+@@ -3,6 +3,7 @@
+ #include <sys/wait.h>
+ #include <sys/types.h>
+ #include <unistd.h>
++#include <string.h>
+ 
+ 
+ 
+@@ -18,49 +19,52 @@ int main(int argc, char * argv[])
+ 	int br=1;
+     	int j=0;
+ 	char port[100];
+-	pid_t list[100];
++	pid_t list;
+ 
+ 	while(br){
+-
++start:
+ 
+ for (int i=0;i<j;i++){
++
+ 	pid_t pid;
+-	if( (pid = waitpid( (pid_t) -1, NULL, WNOHANG))!=0){
++	while( (pid = waitpid( (pid_t) -1, NULL, WNOHANG))!=0){
+ 	       fprintf(stderr, "[pid=%d] ", (int)pid);
+    	       fprintf(stderr, "mdb-lookup-server terminated\n");
+ 	}
+ }
+     	printf("port number: ");
+-    	scanf("%s", port);
++	char E = getc(stdin);
++	if (E=='\n')
++		goto start;
++	else
++		ungetc(E, stdin);
++    scanf("%s", port);
++    
++    
++    
+ 	argv[1] = port;
+ 
++//	for (int i=0;i<strlen(port);i++){
++//		printf("%c",port[i]);
+ 
+-/*for (int i=0; i<j; i++){
+-	pid_t pid = list[i];
+-	if (pid==0){	
+-
+-       fprintf(stderr, "[pid=%d] ", (int)pid);
+-       fprintf(stderr, "mdb-lookup-server terminated\n");
+-
+-	}
+-	}*/
++//			}
+ 
+ 
++//	if (E == '\n')
++//		goto start;
+ 
+-      	list[j++] = fork();
++	j++;
++      	list= fork();
+ 
+-  	  if (list[j-1] < 0) {
+-        die("fork failed");
++  	  if (list < 0) {
++        	die("fork failed");
+ 	    
+-    }else if (list[j-1]== 0) {
++    }else if (list== 0) {
+ 
+         // child process
+-//	printf("***ARGV[1]= %s\n",argv[1]);    
+-//	printf("you typed %s.\n", port);
+         fprintf(stderr, "[pid=%d] ", (int)getpid());
+         fprintf(stderr, "mdb-lookup-server started on port %s\n", argv[1]);
+-        execl("./mdb-lookup-server-nc.sh", "mdb-lookup-server-nc.sh",
+-                 argv[1], (char *)0);
++        execl("./mdb-lookup-server-nc.sh", "mdb-lookup-server-nc.sh",argv[1], (char *)0);
+         die("execl failed");
+     }
+ 	}
+-- 
+2.17.1
+
+
+From 30786852a358ff5c4f8fcb1c37722b93c25bb2f3 Mon Sep 17 00:00:00 2001
+From: Brennen Bickford <btb2125@columbia.edu>
+Date: Sat, 20 Mar 2021 23:26:14 -0400
+Subject: [PATCH 6/6] Comment add, code cleaned, ready to submit
+
+---
+ README.txt                     |  7 ++++
+ part1/Makefile                 |  5 ---
+ part1/mdb-lookup-server-nc-2.c | 73 +++++++++++++++-------------------
+ part1/mdb-lookup-server-nc.sh  |  3 --
+ 4 files changed, 39 insertions(+), 49 deletions(-)
+
+diff --git a/README.txt b/README.txt
+index d3e571c..5c1d1c7 100644
+--- a/README.txt
++++ b/README.txt
+@@ -1,8 +1,13 @@
+ Brennen Bickford
+ btb2125
++lab 5
+ 
+ 
++*************************************************************************************
++DESRIPTIONS
++part1(a): Should work as expected
+ 
++part1(b): tree attached below:
+ 
+ 3140 18901 18901 18901 ?           -1 Ss       0   0:00  \_ sshd: btb2125 [priv]
+ 18901 19741 18901 18901 ?           -1 S     4572   0:00  |   \_ sshd: btb2125@pts/158
+@@ -14,3 +19,5 @@ btb2125
+  9157 16399  9151 20673 pts/158   9151 S+    4572   0:00  |                   \_ /bin/sh /home/jae/cs3157-pub/bin/mdb-lookup-cs3157
+ 16399 16400  9151 20673 pts/158   9151 S+    4572   0:00  |                       \_ /home/jae/cs3157-pub/bin/mdb-lookup /home/jae/cs3157-pub/bin/mdb-cs3157
+ 
++part 1(c): Should work as expected.
++
+diff --git a/part1/Makefile b/part1/Makefile
+index 63dabeb..4fef6f8 100644
+--- a/part1/Makefile
++++ b/part1/Makefile
+@@ -1,13 +1,8 @@
+ CC= gcc
+ CFLAGS= -g -Wall
+ 
+-
+-
+ mdb-lookup-server-nc-2: 
+ 
+-
+-
+-
+ .PHONY: clean
+ clean: 
+ 	rm -f *.o mdb-lookup-server-nc-2
+diff --git a/part1/mdb-lookup-server-nc-2.c b/part1/mdb-lookup-server-nc-2.c
+index df1cf23..6eb6731 100644
+--- a/part1/mdb-lookup-server-nc-2.c
++++ b/part1/mdb-lookup-server-nc-2.c
+@@ -16,58 +16,49 @@ static void die(const char *s)
+ int main(int argc, char * argv[])
+ {
+ 	
+-	int br=1;
++	int br=1;//break character for loop
+     	int j=0;
+ 	char port[100];
+-	pid_t list;
++	pid_t pid;
+ 
+ 	while(br){
+-start:
+-
+-for (int i=0;i<j;i++){
+-
+-	pid_t pid;
+-	while( (pid = waitpid( (pid_t) -1, NULL, WNOHANG))!=0){
+-	       fprintf(stderr, "[pid=%d] ", (int)pid);
+-   	       fprintf(stderr, "mdb-lookup-server terminated\n");
+-	}
+-}
+-    	printf("port number: ");
+-	char E = getc(stdin);
+-	if (E=='\n')
+-		goto start;
+-	else
+-		ungetc(E, stdin);
+-    scanf("%s", port);
+-    
+-    
+-    
+-	argv[1] = port;
++		start:
+ 
+-//	for (int i=0;i<strlen(port);i++){
+-//		printf("%c",port[i]);
++		for (int i=0;i<j;i++){ //loop to remove exited children
++			pid_t pid2;
++			while( (pid2 = waitpid( (pid_t) -1, NULL, WNOHANG))!=0){
++	     			fprintf(stderr, "[pid=%d] ", (int)pid);
++   	   			fprintf(stderr, "mdb-lookup-server terminated\n");
++			}
++		}
+ 
+-//			}
++		printf("port number: ");
+ 
++		char E = getc(stdin);		//catch Enter Key
++		if (E=='\n'){
++			goto start;		
++		}else						
++			ungetc(E, stdin);	
+ 
+-//	if (E == '\n')
+-//		goto start;
++		scanf("%s", port); //get port input
++		argv[1] = port;
+ 
+-	j++;
+-      	list= fork();
++		E=getc(stdin);//flush \n from previous input
++		E='\0';	      //reset E (clearing stdin)
+ 
+-  	  if (list < 0) {
+-        	die("fork failed");
+-	    
+-    }else if (list== 0) {
++		j++; //variable to track potential children
++      		pid= fork();
+ 
+-        // child process
+-        fprintf(stderr, "[pid=%d] ", (int)getpid());
+-        fprintf(stderr, "mdb-lookup-server started on port %s\n", argv[1]);
+-        execl("./mdb-lookup-server-nc.sh", "mdb-lookup-server-nc.sh",argv[1], (char *)0);
+-        die("execl failed");
+-    }
++  		if (pid < 0) {
++       			die("fork failed");    
++	  	}else if (pid== 0) {
++    			// child process
++			fprintf(stderr, "[pid=%d] ", (int)getpid());
++			fprintf(stderr, "mdb-lookup-server started on port %s\n", argv[1]);
++			execl("./mdb-lookup-server-nc.sh", "mdb-lookup-server-nc.sh",argv[1], (char *)0);
++			die("execl failed");
++    		}
+ 	}
+-    return 0;
++return 0;
+ }
+ 
+diff --git a/part1/mdb-lookup-server-nc.sh b/part1/mdb-lookup-server-nc.sh
+index 74bd4c8..340970c 100755
+--- a/part1/mdb-lookup-server-nc.sh
++++ b/part1/mdb-lookup-server-nc.sh
+@@ -1,9 +1,6 @@
+ #!/bin/sh
+-#echo "$*"
+ PORT="$*"
+ PID="mypipe-$$"
+-#echo "***************$PID"
+-#echo "*************************** $PORT"
+ MYPATH="/home/jae/cs3157-pub/bin/mdb-lookup-cs3157"
+ 
+ on_ctrl_c(){
+-- 
+2.17.1
+

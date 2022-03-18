@@ -1,0 +1,1148 @@
+From f54d493644d7c77aa1db7ce9ff0feca65b9a0629 Mon Sep 17 00:00:00 2001
+From: Brennen Bickford <btb2125@columbia.edu>
+Date: Tue, 9 Feb 2021 17:12:13 -0500
+Subject: [PATCH 1/8] Got part 1 sorting function to work
+
+---
+ part1/Makefile | 13 ++++++++
+ part1/isort.c  | 84 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 97 insertions(+)
+ create mode 100644 part1/Makefile
+ create mode 100644 part1/isort.c
+
+diff --git a/part1/Makefile b/part1/Makefile
+new file mode 100644
+index 0000000..c8c240d
+--- /dev/null
++++ b/part1/Makefile
+@@ -0,0 +1,13 @@
++CC= gcc
++CFLAGS= -Wall -g
++LDLibs= lm
++
++isort: isort.o
++
++
++.PHONY: clean
++clean:
++	rm -f *.o a.out core isort
++
++.Phony: all
++all: clean isort
+diff --git a/part1/isort.c b/part1/isort.c
+new file mode 100644
+index 0000000..72505a1
+--- /dev/null
++++ b/part1/isort.c
+@@ -0,0 +1,84 @@
++#include <stdio.h>
++#include <stdlib.h>
++
++void sort_integer_array(int *begin, int *end, int ascending); 
++
++
++
++
++
++int compareFunction(const void* a , const void* b){
++
++	const int *pa = (int*) a;
++	const int *pb = (int*) b;
++	const int diff= *pb- *pa;
++
++	return (diff);
++}
++
++
++
++int main()
++{
++	int x;
++	
++		
++
++	printf("Please enter a positive integer: ");
++	scanf("%d",&x);
++	
++
++	int *p=malloc(x * sizeof(int));
++
++
++
++	for (int i =0; i<x; i++){
++		p[i]=(random() % 100);
++		printf("%d ",p[i]);
++			}
++
++		printf("\n");
++
++
++	sort_integer_array(p,(p+x)-1,1);
++
++	
++	for (int i =0; i<x; i++){
++
++		printf("%d ",p[i]);
++	}
++	if (p== NULL){
++		perror("malloc returned NULL");
++		exit(1);
++	}
++
++
++
++free(p);
++
++}
++
++
++
++
++    void sort_integer_array(int *begin, int *end, int ascending) 
++    {
++
++	int size = (end - begin)+1 ;
++         printf("%d\n",size);
++	if (ascending ==1){
++
++	   	qsort( begin , size,  sizeof(int) , compareFunction);
++
++	}else{
++	return;
++
++	}
++
++
++
++    }
++	
++
++
++
+-- 
+2.17.1
+
+
+From 83b61e114c5489ac4741dd1b90a65fe50eac51ee Mon Sep 17 00:00:00 2001
+From: Brennen Bickford <btb2125@columbia.edu>
+Date: Thu, 11 Feb 2021 18:54:54 -0500
+Subject: [PATCH 2/8] Got part 1 working
+
+---
+ part1/Makefile |  9 +++++++++
+ part1/isort.c  | 42 +++++++++++++++++++++++++++++++++++-------
+ 2 files changed, 44 insertions(+), 7 deletions(-)
+
+diff --git a/part1/Makefile b/part1/Makefile
+index c8c240d..b199b8c 100644
+--- a/part1/Makefile
++++ b/part1/Makefile
+@@ -11,3 +11,12 @@ clean:
+ 
+ .Phony: all
+ all: clean isort
++
++
++.Phony: run
++run: isort
++	./isort
++.Phony: vg
++vg:
++	valgrind --lead-check=yes ./isort
++	
+diff --git a/part1/isort.c b/part1/isort.c
+index 72505a1..729359d 100644
+--- a/part1/isort.c
++++ b/part1/isort.c
+@@ -18,6 +18,23 @@ int compareFunction(const void* a , const void* b){
+ 
+ 
+ 
++int compareFunctionReverse(const void* a , const void* b){
++
++	
++        const int *pa = (int*) a;
++        const int *pb = (int*) b;
++        const int diff= *pa- *pb;
++
++        return (diff);
++
++
++
++
++
++}
++
++
++
+ int main()
+ {
+ 	int x;
+@@ -30,13 +47,16 @@ int main()
+ 
+ 	int *p=malloc(x * sizeof(int));
+ 
++        if (p== NULL){
++                perror("malloc returned NULL");
++                exit(1);
++        }
+ 
+ 
+ 	for (int i =0; i<x; i++){
+ 		p[i]=(random() % 100);
+ 		printf("%d ",p[i]);
+ 			}
+-
+ 		printf("\n");
+ 
+ 
+@@ -47,10 +67,19 @@ int main()
+ 
+ 		printf("%d ",p[i]);
+ 	}
+-	if (p== NULL){
+-		perror("malloc returned NULL");
+-		exit(1);
+-	}
++
++		printf("\n");
++
++
++	sort_integer_array(p,(p+x)-1,0);
++
++ 	for (int i =0; i<x; i++){
++
++                printf("%d ",p[i]);
++        }
++
++
++		printf("\n");
+ 
+ 
+ 
+@@ -71,8 +100,7 @@ free(p);
+ 	   	qsort( begin , size,  sizeof(int) , compareFunction);
+ 
+ 	}else{
+-	return;
+-
++		qsort (begin , size, sizeof(int), compareFunctionReverse);
+ 	}
+ 
+ 
+-- 
+2.17.1
+
+
+From 26b4a9d841321d9ce6cc5247cae55db0a21a847f Mon Sep 17 00:00:00 2001
+From: Brennen Bickford <btb2125@columbia.edu>
+Date: Fri, 12 Feb 2021 18:43:40 -0500
+Subject: [PATCH 3/8] Made progress on part 2
+
+---
+ part2/Makefile | 22 ++++++++++++++++++++++
+ part2/twecho.c | 50 +++++++++++++++++++++++++++++++++++++++++++++++---
+ 2 files changed, 69 insertions(+), 3 deletions(-)
+ create mode 100644 part2/Makefile
+
+diff --git a/part2/Makefile b/part2/Makefile
+new file mode 100644
+index 0000000..efc1e34
+--- /dev/null
++++ b/part2/Makefile
+@@ -0,0 +1,22 @@
++CC= gcc
++CFLAGS= -Wall -g
++LDLibs= lm
++
++twecho: twecho.o
++
++
++.PHONY: clean
++clean:
++	rm -f *.o a.out core twecho
++
++.Phony: all
++all: clean isort
++
++
++.Phony: run
++run: clean  twecho
++	./twecho hello world and cs3157
++.Phony: vg
++vg:
++	valgrind --leak-check=yes ./twecho
++	
+diff --git a/part2/twecho.c b/part2/twecho.c
+index c70e975..9d0faf1 100644
+--- a/part2/twecho.c
++++ b/part2/twecho.c
+@@ -10,13 +10,57 @@
+ static char **duplicateArgs(int argc, char **argv)
+ {
+ 
++	char **myCopy =(char**)malloc(sizeof(argv));
++    if (myCopy == NULL) {
++        perror("malloc returned NULL");
++        exit(1);
++	}
++
++	printf("Size of myCopy: %d\n", sizeof(myCopy));
++
++//	myCopy = argv;
++
++while(*argv){
++
++	*myCopy = (char*)malloc(sizeof(*argv));
++    if (*myCopy == NULL) {
++        perror("malloc returned NULL");
++        exit(1);
++        }
++
++	
++	printf("Size of *myCopy: %d\n", sizeof(*myCopy));
++
++	strcpy( *myCopy, *argv);
++
++		printf("%s\n",*myCopy);	
++		printf("Length is : %d\n",(int) strlen(*myCopy));
++
++		printf("Length is : %d\n", (int)strlen(*argv));
++	
++		for(int i=0;i<(strlen(*myCopy)+1);i++){
++				i++;
++
++				}
++
++					//	printf("%s %s \n", *myCopy, *argv);
++	*argv++;
+ }
+ 
+-static void freeDuplicatedArgs(char **copy)
+-{
++
++return myCopy;
+ 
+ }
+ 
++//static void freeDuplicatedArgs(char **copy)
++//{
++
++
++
++
++
++//}
++
+ /*
+  * DO NOT MODIFY main().
+  */
+@@ -34,7 +78,7 @@ int main(int argc, char **argv)
+         printf("%s %s\n", *argv++, *p++);
+     }
+ 
+-    freeDuplicatedArgs(copy);
++//    freeDuplicatedArgs(copy);
+ 
+     return 0;
+ }
+-- 
+2.17.1
+
+
+From 94f8a28c19b5982b17050699a1adcde8990cb823 Mon Sep 17 00:00:00 2001
+From: Brennen Bickford <btb2125@columbia.edu>
+Date: Fri, 12 Feb 2021 20:33:49 -0500
+Subject: [PATCH 4/8] Restarted part 2
+
+---
+ part2/twecho.c | 48 +++++-------------------------------------------
+ 1 file changed, 5 insertions(+), 43 deletions(-)
+
+diff --git a/part2/twecho.c b/part2/twecho.c
+index 9d0faf1..9e42299 100644
+--- a/part2/twecho.c
++++ b/part2/twecho.c
+@@ -10,56 +10,18 @@
+ static char **duplicateArgs(int argc, char **argv)
+ {
+ 
+-	char **myCopy =(char**)malloc(sizeof(argv));
+-    if (myCopy == NULL) {
+-        perror("malloc returned NULL");
+-        exit(1);
+-	}
++	return argv;
+ 
+-	printf("Size of myCopy: %d\n", sizeof(myCopy));
+-
+-//	myCopy = argv;
+-
+-while(*argv){
+-
+-	*myCopy = (char*)malloc(sizeof(*argv));
+-    if (*myCopy == NULL) {
+-        perror("malloc returned NULL");
+-        exit(1);
+-        }
+-
+-	
+-	printf("Size of *myCopy: %d\n", sizeof(*myCopy));
+-
+-	strcpy( *myCopy, *argv);
+-
+-		printf("%s\n",*myCopy);	
+-		printf("Length is : %d\n",(int) strlen(*myCopy));
+-
+-		printf("Length is : %d\n", (int)strlen(*argv));
+-	
+-		for(int i=0;i<(strlen(*myCopy)+1);i++){
+-				i++;
+-
+-				}
+-
+-					//	printf("%s %s \n", *myCopy, *argv);
+-	*argv++;
+ }
+ 
+-
+-return myCopy;
+-
+-}
+-
+-//static void freeDuplicatedArgs(char **copy)
+-//{
++static void freeDuplicatedArgs(char **copy)
++{
+ 
+ 
+ 
+ 
+ 
+-//}
++}
+ 
+ /*
+  * DO NOT MODIFY main().
+@@ -78,7 +40,7 @@ int main(int argc, char **argv)
+         printf("%s %s\n", *argv++, *p++);
+     }
+ 
+-//    freeDuplicatedArgs(copy);
++    freeDuplicatedArgs(copy);
+ 
+     return 0;
+ }
+-- 
+2.17.1
+
+
+From 89a1a6dd232fd2332904efb7a5979063cfe3e90c Mon Sep 17 00:00:00 2001
+From: Brennen Bickford <btb2125@columbia.edu>
+Date: Sat, 13 Feb 2021 12:27:02 -0500
+Subject: [PATCH 5/8] Got to step 4 of "How to approach lab 2"
+
+---
+ part2/twecho.c | 35 ++++++++++++++++++++++++++++++++++-
+ 1 file changed, 34 insertions(+), 1 deletion(-)
+
+diff --git a/part2/twecho.c b/part2/twecho.c
+index 9e42299..4f787ae 100644
+--- a/part2/twecho.c
++++ b/part2/twecho.c
+@@ -10,7 +10,40 @@
+ static char **duplicateArgs(int argc, char **argv)
+ {
+ 
+-	return argv;
++	char** myArgv = (char **)malloc(sizeof(argv));
++	
++	//dont forget null part
++	char* vertArr[argc];
++     	  vertArr[0]	=(char *) malloc(sizeof(*argv) * argc);
++
++	  char *pv = vertArr[0];
++		myArgv = pv;
++		
++
++
++	printf("Size of myArgv is : %ld\n", sizeof(myArgv));
++	printf("Size of vertArr is : %ld\n", sizeof(vertArr));
++	printf("Size of vertArr[1] is : %ld\n", sizeof(vertArr[1]));
++	
++
++	for (int i=0; i<argc; i++){
++
++
++
++		*(myArgv +i) = *(argv +i);
++		char * copy = malloc (strlen(*(argv+1)));
++		
++
++
++		printf("Length of %d: %ld\n",i, strlen(*(argv+i)));
++
++		
++	}	
++
++
++
++
++	return myArgv;
+ 
+ }
+ 
+-- 
+2.17.1
+
+
+From 3907070b5b7926397df9bbc21008ed8ad87f5bd8 Mon Sep 17 00:00:00 2001
+From: Brennen Bickford <btb2125@columbia.edu>
+Date: Sat, 13 Feb 2021 20:19:05 -0500
+Subject: [PATCH 6/8] Part 2 output is working.
+
+---
+ part2/Makefile |  2 +-
+ part2/twecho.c | 78 +++++++++++++++++++++++++++++++++++++++++---------
+ 2 files changed, 65 insertions(+), 15 deletions(-)
+
+diff --git a/part2/Makefile b/part2/Makefile
+index efc1e34..f8182e4 100644
+--- a/part2/Makefile
++++ b/part2/Makefile
+@@ -18,5 +18,5 @@ run: clean  twecho
+ 	./twecho hello world and cs3157
+ .Phony: vg
+ vg:
+-	valgrind --leak-check=yes ./twecho
++	valgrind --leak-check=yes ./twecho hello world and cs3157 tooooooooooooooooooooooooo
+ 	
+diff --git a/part2/twecho.c b/part2/twecho.c
+index 4f787ae..8484d46 100644
+--- a/part2/twecho.c
++++ b/part2/twecho.c
+@@ -13,37 +13,87 @@ static char **duplicateArgs(int argc, char **argv)
+ 	char** myArgv = (char **)malloc(sizeof(argv));
+ 	
+ 	//dont forget null part
+-	char* vertArr[argc];
+-     	  vertArr[0]	=(char *) malloc(sizeof(*argv) * argc);
++//	char* vertArr[argc];
++  //  	  vertArr[0]	=(char *) malloc(sizeof(*argv) * argc);
++	
+ 
+-	  char *pv = vertArr[0];
+-		myArgv = pv;
+-		
++        char **vertArr = (char **) malloc(sizeof(*argv)*argc);
++	    if (vertArr == NULL) {
++	        perror("malloc returned NULL");
++	        exit(1);
++	    }
++
++    	    printf("Size of myArgv is : %ld\n", sizeof(myArgv));
++
++		printf("Contents of myArgv[1]: %p\n" ,*myArgv );
++    	    printf("Size of vertArr is : %ld\n", sizeof(vertArr));
++
++    	    printf("Size of vertArr[1] is : %ld\n", sizeof(vertArr[1]));
++
++
++
++    	    printf("Address of vertArr: %p\n" , vertArr);
++
++
++
++    	    printf("Address of myArgv: %p\n" , myArgv);
++
++
++	printf("Address of vertArr[1]: %p\n" , &vertArr[1]);
++
++
++	printf("Contents of vertArr[1]: %c\n" , vertArr[1]);
+ 
+ 
+-	printf("Size of myArgv is : %ld\n", sizeof(myArgv));
+-	printf("Size of vertArr is : %ld\n", sizeof(vertArr));
+-	printf("Size of vertArr[1] is : %ld\n", sizeof(vertArr[1]));
+-	
+ 
+ 	for (int i=0; i<argc; i++){
+ 
++	
++		char **tempArgv = argv;
++		char tempCopy[strlen(*(tempArgv+i)+1)] ;
++		char *temppc = tempCopy;
++		char **vp = vertArr;
++
++//	printf("Address of temppc: %p\n" , temppc);
+ 
++		char *pc = (char *)malloc (strlen(*(tempArgv+i)+1));
++		    if (pc == NULL) {
++       			 perror("malloc returned NULL");
++       			 exit(1);
++		    }
+ 
+-		*(myArgv +i) = *(argv +i);
+-		char * copy = malloc (strlen(*(argv+1)));
++		char * pcp = pc;    
+ 		
++		    vertArr[i] = pc;
+ 
++    		    strcpy(temppc ,*(tempArgv+i));
+ 
+-		printf("Length of %d: %ld\n",i, strlen(*(argv+i)));
++	
++	printf("Address of pc: %p\n" , pc);
++
++		while((*pc = toupper(*temppc)  )   != 0){
++				temppc++;
++				pc++;								
++				}
+ 
++//		printf("%s\n", pc);
++	
++	pc = pcp;
++	//myArgv = vertArr;
++
++	printf("Contents of pc: %c\n" ,pc[0]);
++	vertArr = vp;
+ 		
+ 	}	
+ 
++	*(myArgv)=*vertArr;
+ 
++	printf("Contents of vertArr[1]: %s\n" , vertArr[1]);
++	printf("Address of myArgv: %p\n" , myArgv);
+ 
+-
+-	return myArgv;
++    	    printf("Address of vertArr: %p\n" , vertArr);
++		printf("Contents of myArgv[1]: %p\n" ,*myArgv );
++	return vertArr;
+ 
+ }
+ 
+-- 
+2.17.1
+
+
+From be35f1d0c487cd272364bf68ed86fc51dcc4671a Mon Sep 17 00:00:00 2001
+From: Brennen Bickford <btb2125@columbia.edu>
+Date: Sun, 14 Feb 2021 09:24:30 -0500
+Subject: [PATCH 7/8] Part 2 runs valgrind-clean
+
+---
+ part2/Makefile |  3 +-
+ part2/twecho.c | 92 +++++++++++++++++++-------------------------------
+ 2 files changed, 35 insertions(+), 60 deletions(-)
+
+diff --git a/part2/Makefile b/part2/Makefile
+index f8182e4..5ec3bbc 100644
+--- a/part2/Makefile
++++ b/part2/Makefile
+@@ -18,5 +18,4 @@ run: clean  twecho
+ 	./twecho hello world and cs3157
+ .Phony: vg
+ vg:
+-	valgrind --leak-check=yes ./twecho hello world and cs3157 tooooooooooooooooooooooooo
+-	
++	valgrind --leak-check=yes  ./twecho hello 
+diff --git a/part2/twecho.c b/part2/twecho.c
+index 8484d46..3cb85f0 100644
+--- a/part2/twecho.c
++++ b/part2/twecho.c
+@@ -9,100 +9,76 @@
+ 
+ static char **duplicateArgs(int argc, char **argv)
+ {
+-
+-	char** myArgv = (char **)malloc(sizeof(argv));
+-	
+-	//dont forget null part
+-//	char* vertArr[argc];
+-  //  	  vertArr[0]	=(char *) malloc(sizeof(*argv) * argc);
+ 	
+-
+-        char **vertArr = (char **) malloc(sizeof(*argv)*argc);
++        char **vertArr = (char **) malloc(sizeof(*argv)*(argc+1));
+ 	    if (vertArr == NULL) {
+ 	        perror("malloc returned NULL");
+ 	        exit(1);
+ 	    }
+ 
+-    	    printf("Size of myArgv is : %ld\n", sizeof(myArgv));
+-
+-		printf("Contents of myArgv[1]: %p\n" ,*myArgv );
+-    	    printf("Size of vertArr is : %ld\n", sizeof(vertArr));
+-
+-    	    printf("Size of vertArr[1] is : %ld\n", sizeof(vertArr[1]));
+-
+-
+-
+-    	    printf("Address of vertArr: %p\n" , vertArr);
+-
+-
+-
+-    	    printf("Address of myArgv: %p\n" , myArgv);
+-
+-
+-	printf("Address of vertArr[1]: %p\n" , &vertArr[1]);
+-
+-
+-	printf("Contents of vertArr[1]: %c\n" , vertArr[1]);
+-
+-
+ 
+ 	for (int i=0; i<argc; i++){
+ 
+ 	
+ 		char **tempArgv = argv;
+-		char tempCopy[strlen(*(tempArgv+i)+1)] ;
++		char tempCopy[strlen(*(tempArgv+i))] ;
+ 		char *temppc = tempCopy;
+-		char **vp = vertArr;
+ 
+-//	printf("Address of temppc: %p\n" , temppc);
++		char *pc = (char *)malloc (strlen(*(tempArgv+i))+1);
+ 
+-		char *pc = (char *)malloc (strlen(*(tempArgv+i)+1));
+ 		    if (pc == NULL) {
+        			 perror("malloc returned NULL");
+        			 exit(1);
+ 		    }
+ 
+-		char * pcp = pc;    
+ 		
+ 		    vertArr[i] = pc;
+-
++		
+     		    strcpy(temppc ,*(tempArgv+i));
+ 
+-	
+-	printf("Address of pc: %p\n" , pc);
++		while((*pc++ = toupper(*temppc++) ) != 0); 
+ 
+-		while((*pc = toupper(*temppc)  )   != 0){
+-				temppc++;
+-				pc++;								
+-				}
++		if(i==(argc-1)){
++			vertArr[i+1] = '\0';
++		}
+ 
+-//		printf("%s\n", pc);
+-	
+-	pc = pcp;
+-	//myArgv = vertArr;
+-
+-	printf("Contents of pc: %c\n" ,pc[0]);
+-	vertArr = vp;
+-		
+ 	}	
+ 
+-	*(myArgv)=*vertArr;
+-
+-	printf("Contents of vertArr[1]: %s\n" , vertArr[1]);
+-	printf("Address of myArgv: %p\n" , myArgv);
+-
+-    	    printf("Address of vertArr: %p\n" , vertArr);
+-		printf("Contents of myArgv[1]: %p\n" ,*myArgv );
+ 	return vertArr;
+ 
+ }
+ 
+ static void freeDuplicatedArgs(char **copy)
+-{
++{ 
++	char** temp = copy;
++
++
++	while  (*temp){
++	
++		free(*temp++);
++
++
++	}
++
++
++
++
++	/*
+ 
++	do{
+ 
++//		free(copy);
++		printf("Freeing: %s\n",*temp);
++		free(*temp++);	
++//		printf("Address of temp after increment: %p\n" , &*temp);
++//		temp++;
++//		printf("Freeing: %s\n",*temp);
++	}
++	while(temp!= '\0' );
+ 
++	*/
+ 
++	free(copy);
+ 
+ }
+ 
+-- 
+2.17.1
+
+
+From ca90d91346d2cbe3da888c67345391568b546a3b Mon Sep 17 00:00:00 2001
+From: Brennen Bickford <btb2125@columbia.edu>
+Date: Sun, 14 Feb 2021 10:33:23 -0500
+Subject: [PATCH 8/8] Cleaned code and added comments. Ready to submit
+
+---
+ README.txt     | 58 +++++++++++++++++++++++++++++++++++
+ part1/Makefile |  7 +++--
+ part1/isort.c  | 83 ++++++++++++++++----------------------------------
+ part2/Makefile |  2 +-
+ part2/twecho.c | 62 +++++++++++++------------------------
+ 5 files changed, 111 insertions(+), 101 deletions(-)
+
+diff --git a/README.txt b/README.txt
+index 66dfd3e..c4f467a 100644
+--- a/README.txt
++++ b/README.txt
+@@ -9,3 +9,61 @@ The description should indicate whether your solution for the part is
+ working or not.  You may also want to include anything else you would
+ like to communicate to the grader such as extra functionalities you
+ implemented or how you tried to fix your non-working code.
++
++Brennen Bickford
++btb2125
++lab 2
++
++--PART 1--
++
++	--Desription--
++		Code should work as expected. I used qsort() to sort the arrays
++		and two comparison functions.
++
++	--Valrind--
++	==19909== Memcheck, a memory error detector
++	==19909== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
++	==19909== Using Valgrind-3.13.0 and LibVEX; rerun with -h for copyright info
++	==19909== Command: ./isort
++	==19909== 
++	==19909== 
++	==19909== Process terminating with default action of signal 2 (SIGINT)
++	==19909==    at 0x4F4E151: read (read.c:27)
++	==19909==    by 0x4ECB217: _IO_file_underflow@@GLIBC_2.2.5 (fileops.c:531)
++	==19909==    by 0x4ECC4C1: _IO_default_uflow (genops.c:380)
++	==19909==    by 0x4EA9CC9: _IO_vfscanf (vfscanf.c:630)
++	==19909==    by 0x4EBA0B7: __isoc99_scanf (isoc99_scanf.c:37)
++	==19909==    by 0x108AC4: main (isort.c:45)
++	Please enter array size: ==19909== 
++	==19909== HEAP SUMMARY:
++	==19909==     in use at exit: 0 bytes in 0 blocks
++	==19909==   total heap usage: 2 allocs, 2 frees, 2,048 bytes allocated
++	==19909== 
++	==19909== All heap blocks were freed -- no leaks are possible
++	==19909== 
++	==19909== For counts of detected and suppressed errors, rerun with: -v
++	==19909== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
++
++
++--Part 2--
++
++	--Description--
++		Code should work as expected.
++
++	--Description--
++	==7093== Memcheck, a memory error detector
++	==7093== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
++	==7093== Using Valgrind-3.13.0 and LibVEX; rerun with -h for copyright info
++	==7093== Command: ./twecho
++	==7093== 
++	==7093== 
++	==7093== HEAP SUMMARY:
++	==7093==     in use at exit: 0 bytes in 0 blocks
++	==7093==   total heap usage: 0 allocs, 0 frees, 0 bytes allocated
++	==7093== 
++	==7093== All heap blocks were freed -- no leaks are possible
++	==7093== 
++	==7093== For counts of detected and suppressed errors, rerun with: -v
++	==7093== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
++
++
+diff --git a/part1/Makefile b/part1/Makefile
+index b199b8c..3c1f590 100644
+--- a/part1/Makefile
++++ b/part1/Makefile
+@@ -14,9 +14,10 @@ all: clean isort
+ 
+ 
+ .Phony: run
+-run: isort
++run: clean isort
+ 	./isort
+-.Phony: vg
++
++.Phony: vg 
+ vg:
+-	valgrind --lead-check=yes ./isort
++	valgrind --leak-check=yes ./isort
+ 	
+diff --git a/part1/isort.c b/part1/isort.c
+index 729359d..dfa4aca 100644
+--- a/part1/isort.c
++++ b/part1/isort.c
+@@ -1,12 +1,10 @@
+ #include <stdio.h>
+ #include <stdlib.h>
++#include<time.h>
+ 
+ void sort_integer_array(int *begin, int *end, int ascending); 
+ 
+ 
+-
+-
+-
+ int compareFunction(const void* a , const void* b){
+ 
+ 	const int *pa = (int*) a;
+@@ -16,10 +14,7 @@ int compareFunction(const void* a , const void* b){
+ 	return (diff);
+ }
+ 
+-
+-
+ int compareFunctionReverse(const void* a , const void* b){
+-
+ 	
+         const int *pa = (int*) a;
+         const int *pb = (int*) b;
+@@ -27,86 +22,62 @@ int compareFunctionReverse(const void* a , const void* b){
+ 
+         return (diff);
+ 
++}
+ 
++void sort_integer_array(int *begin, int *end, int ascending){
+ 
++        int size = (end - begin)+1 ;
+ 
+-
++        if (ascending ==1){
++                qsort( begin , size,  sizeof(int) , compareFunction);
++        }else{
++                qsort (begin , size, sizeof(int), compareFunctionReverse);
++        }
+ }
+ 
+-
+-
+ int main()
+ {
+ 	int x;
+-	
+-		
++	srandom(time(NULL));
+ 
+-	printf("Please enter a positive integer: ");
++	//user input
++	printf("Please enter array size: ");
+ 	scanf("%d",&x);
+-	
+ 
++	//malloc	
+ 	int *p=malloc(x * sizeof(int));
+-
+         if (p== NULL){
+                 perror("malloc returned NULL");
+                 exit(1);
+         }
+ 
+-
++	//prints orignal numbers modded by 100
++	printf("original: ");
+ 	for (int i =0; i<x; i++){
+ 		p[i]=(random() % 100);
+ 		printf("%d ",p[i]);
+-			}
+-		printf("\n");
+-
+-
+-	sort_integer_array(p,(p+x)-1,1);
+-
++	}
++	printf("\n");
+ 	
+-	for (int i =0; i<x; i++){
++	//sorts numbers in ascending order
++	printf("ascending: ");
++	sort_integer_array(p,(p+x)-1,0);
+ 
++	for (int i =0; i<x; i++){
+ 		printf("%d ",p[i]);
+ 	}
++	printf("\n");
+ 
+-		printf("\n");
+-
+-
+-	sort_integer_array(p,(p+x)-1,0);
++	//sorts numbers in descending order
++	printf("descending: ");
++	sort_integer_array(p,(p+x)-1,1);
+ 
+  	for (int i =0; i<x; i++){
+-
+                 printf("%d ",p[i]);
+         }
++	printf("\n");
+ 
+ 
+-		printf("\n");
+-
+-
+-
+-free(p);
++	free(p);
+ 
+ }
+-
+-
+-
+-
+-    void sort_integer_array(int *begin, int *end, int ascending) 
+-    {
+-
+-	int size = (end - begin)+1 ;
+-         printf("%d\n",size);
+-	if (ascending ==1){
+-
+-	   	qsort( begin , size,  sizeof(int) , compareFunction);
+-
+-	}else{
+-		qsort (begin , size, sizeof(int), compareFunctionReverse);
+-	}
+-
+-
+-
+-    }
+-	
+-
+-
+-
+diff --git a/part2/Makefile b/part2/Makefile
+index 5ec3bbc..cf7ba2a 100644
+--- a/part2/Makefile
++++ b/part2/Makefile
+@@ -18,4 +18,4 @@ run: clean  twecho
+ 	./twecho hello world and cs3157
+ .Phony: vg
+ vg:
+-	valgrind --leak-check=yes  ./twecho hello 
++	valgrind --leak-check=yes  ./twecho hello world and cs3157 
+diff --git a/part2/twecho.c b/part2/twecho.c
+index 3cb85f0..28dc9e9 100644
+--- a/part2/twecho.c
++++ b/part2/twecho.c
+@@ -9,77 +9,57 @@
+ 
+ static char **duplicateArgs(int argc, char **argv)
+ {
+-	
+-        char **vertArr = (char **) malloc(sizeof(*argv)*(argc+1));
++	//malloc vertical array
++	char **vertArr = (char **) malloc(sizeof(*argv)*(argc+1));
+ 	    if (vertArr == NULL) {
+ 	        perror("malloc returned NULL");
+ 	        exit(1);
+ 	    }
+ 
+-
++	//loop to store strings
+ 	for (int i=0; i<argc; i++){
+-
+-	
+ 		char **tempArgv = argv;
++
++		//temporary array to store chars
+ 		char tempCopy[strlen(*(tempArgv+i))] ;
+ 		char *temppc = tempCopy;
+ 
++		//malloc each string array
+ 		char *pc = (char *)malloc (strlen(*(tempArgv+i))+1);
+-
+-		    if (pc == NULL) {
+-       			 perror("malloc returned NULL");
+-       			 exit(1);
+-		    }
+-
++		if (pc == NULL) {
++       			perror("malloc returned NULL");
++       			exit(1);
++		}
+ 		
+-		    vertArr[i] = pc;
++		//asigns pointer to heap array
++		vertArr[i] = pc;
+ 		
+-    		    strcpy(temppc ,*(tempArgv+i));
++		//copies lowercase string to temp array
++    		strcpy(temppc ,*(tempArgv+i));
+ 
++		//copies the chars to heap array and capitalizes
+ 		while((*pc++ = toupper(*temppc++) ) != 0); 
+-
++		
++		//adds the null pointer to the end of the vertical array
+ 		if(i==(argc-1)){
+ 			vertArr[i+1] = '\0';
+ 		}
+-
+ 	}	
+ 
+ 	return vertArr;
+-
+ }
+ 
+ static void freeDuplicatedArgs(char **copy)
+ { 
+ 	char** temp = copy;
+-
+-
+-	while  (*temp){
+ 	
++	//frees string arrays
++	while  (*temp){
+ 		free(*temp++);
+-
+-
+-	}
+-
+-
+-
+-
+-	/*
+-
+-	do{
+-
+-//		free(copy);
+-		printf("Freeing: %s\n",*temp);
+-		free(*temp++);	
+-//		printf("Address of temp after increment: %p\n" , &*temp);
+-//		temp++;
+-//		printf("Freeing: %s\n",*temp);
+ 	}
+-	while(temp!= '\0' );
+-
+-	*/
+-
++	
++	//frees vertical array
+ 	free(copy);
+-
+ }
+ 
+ /*
+-- 
+2.17.1
+

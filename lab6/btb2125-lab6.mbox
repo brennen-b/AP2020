@@ -1,0 +1,1834 @@
+From 02a42f3bc51d30355fd9c7d072536776c14f5f3d Mon Sep 17 00:00:00 2001
+From: Brennen Bickford <btb2125@columbia.edu>
+Date: Fri, 2 Apr 2021 21:44:42 -0400
+Subject: [PATCH 1/6] Copied TCP and MDB files into skeleton code, got server
+ to connect to client
+
+---
+ README.txt                |  17 ++++
+ part1/Makefile            |   4 +-
+ part1/mdb-lookup-server.c | 161 ++++++++++++++++++++++++++++++++++++++
+ part1/my-mdb              | Bin 0 -> 22800 bytes
+ part1/tcp-echo-server.c   |  94 ++++++++++++++++++++++
+ 5 files changed, 275 insertions(+), 1 deletion(-)
+ create mode 100644 README.txt
+ create mode 100644 part1/mdb-lookup-server.c
+ create mode 100644 part1/my-mdb
+ create mode 100644 part1/tcp-echo-server.c
+
+diff --git a/README.txt b/README.txt
+new file mode 100644
+index 0000000..16f76a6
+--- /dev/null
++++ b/README.txt
+@@ -0,0 +1,17 @@
++Brennen Bickford
++btb2125
++Lab 6
++
++
++Part 1
++
++
++
++
++
++
++part 2
++
++
++
++
+diff --git a/part1/Makefile b/part1/Makefile
+index 19ac7de..8d7a98d 100644
+--- a/part1/Makefile
++++ b/part1/Makefile
+@@ -22,7 +22,9 @@ mdb-lookup-server.o: mdb.h
+ .PHONY: clean
+ clean:
+ 	rm -f *.o *~ a.out core mdb-lookup-server
+-
++.PHONY: run
++run: clean default
++	./mdb-lookup-server 8888
+ .PHONY: all
+ all: clean default
+ 
+diff --git a/part1/mdb-lookup-server.c b/part1/mdb-lookup-server.c
+new file mode 100644
+index 0000000..1ca611a
+--- /dev/null
++++ b/part1/mdb-lookup-server.c
+@@ -0,0 +1,161 @@
++/*
++
++ * tcp-echo-server.c
++ */
++
++#include <ctype.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++#include <assert.h>
++#include <unistd.h>
++#include <sys/wait.h>
++#include <sys/stat.h>
++#include <arpa/inet.h>
++#include <sys/types.h>
++#include <sys/socket.h>
++#include "mylist.h"
++#include "mdb.h"
++#define KeyMax 5
++
++static void die(const char *s) { perror(s); exit(1); }
++
++int main(int argc, char **argv)
++{
++    if (argc != 2) {
++        fprintf(stderr, "usage: %s <server-port>\n", argv[0]);
++        exit(1);
++    }
++
++    unsigned short port = atoi(argv[1]);
++
++    // Create a listening socket (also called server socket) 
++
++    int servsock;
++    if ((servsock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
++        die("socket failed");
++
++    // Construct local address structure
++
++    struct sockaddr_in servaddr;
++    memset(&servaddr, 0, sizeof(servaddr));
++    servaddr.sin_family = AF_INET;
++    servaddr.sin_addr.s_addr = htonl(INADDR_ANY); // any network interface
++    servaddr.sin_port = htons(port);
++
++    // Bind to the local address
++
++    if (bind(servsock, (struct sockaddr *) &servaddr, sizeof(servaddr)) < 0)
++        die("bind failed");
++
++    // Start listening for incoming connections
++
++    if (listen(servsock, 5 /* queue size for connection requests */ ) < 0)
++        die("listen failed");
++
++    int r;
++    char buf[10];
++
++    int clntsock;
++    socklen_t clntlen;
++    struct sockaddr_in clntaddr;
++
++    while (1) {
++
++        // Accept an incoming connection
++
++        fprintf(stderr, "waiting for client ... ");
++
++        clntlen = sizeof(clntaddr); // initialize the in-out parameter
++
++        if ((clntsock = accept(servsock,
++                        (struct sockaddr *) &clntaddr, &clntlen)) < 0)
++            die("accept failed");
++
++        // accept() returned a connected socket (also called client socket)
++        // and filled in the client's address into clntaddr
++
++        fprintf(stderr, "client ip: %s\n", inet_ntoa(clntaddr.sin_addr));
++
++
++  char *filename = argv[1];
++    FILE *fp = fopen("my-mdb", "rb");
++    if (fp == NULL)
++        die(filename);
++
++    /*
++     * read all records into memory
++     */
++////////////////////////////////////////////////////////////////////////////////////////////////
++    struct List list;
++    initList(&list);
++
++    fclose(fp);
++
++    /*
++     * lookup loop
++     */
++
++    char line[1000];
++    char key[KeyMax + 1];
++
++    printf("lookup: ");
++    fflush(stdout);
++    while (fgets(line, sizeof(line), stdin) != NULL) {
++
++        // must null-terminate the string manually after strncpy().
++        strncpy(key, line, sizeof(key) - 1);
++        key[sizeof(key) - 1] = '\0';
++
++        // if newline is there, remove it.
++        size_t last = strlen(key) - 1;
++     if (key[last] == '\n')
++            key[last] = '\0';
++
++        // traverse the list, printing out the matching records
++        struct Node *node = list.head;
++        int recNo = 1;
++        while (node) {
++            struct MdbRec *rec = (struct MdbRec *)node->data;
++            if (strstr(rec->name, key) || strstr(rec->msg, key)) {
++                printf("%4d: {%s} said {%s}\n", recNo, rec->name, rec->msg);
++            }
++            node = node->next;
++            recNo++;
++        }
++
++        printf("\nlookup: ");
++        fflush(stdout);
++    }
++
++    // see if fgets() produced error
++    if (ferror(stdin))
++        die("stdin");
++
++    /*
++     * clean up and quit
++     */
++
++//////////////////////////////////////////////////////////////////////////////////////////////
++
++
++
++        // Receive msg from client, capitalize the 1st char, send it back
++
++        while ((r = recv(clntsock, buf, sizeof(buf), 0)) > 0) {
++            *buf = toupper(*buf);
++            if (send(clntsock, buf, r, 0) != r) {
++                fprintf(stderr, "ERR: send failed\n");
++                break;
++            }
++        }
++        if (r < 0) {
++            fprintf(stderr, "ERR: recv failed\n");
++        }
++
++        // Client closed the connection (r==0) or there was an error
++        // Either way, close the client socket and go back to accept()
++
++        close(clntsock);
++    }
++}
+diff --git a/part1/my-mdb b/part1/my-mdb
+new file mode 100644
+index 0000000000000000000000000000000000000000..70da373e3dd95722b23a5ca15ea52af688477ba9
+GIT binary patch
+literal 22800
+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
+GlK%#Ceimy0
+
+literal 0
+HcmV?d00001
+
+diff --git a/part1/tcp-echo-server.c b/part1/tcp-echo-server.c
+new file mode 100644
+index 0000000..ac02540
+--- /dev/null
++++ b/part1/tcp-echo-server.c
+@@ -0,0 +1,94 @@
++/*
++ * tcp-echo-server.c
++ */
++
++#include <ctype.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++#include <assert.h>
++#include <unistd.h>
++#include <sys/wait.h>
++#include <sys/stat.h>
++#include <arpa/inet.h>
++#include <sys/types.h>
++#include <sys/socket.h>
++
++static void die(const char *s) { perror(s); exit(1); }
++
++int main(int argc, char **argv)
++{
++    if (argc != 2) {
++        fprintf(stderr, "usage: %s <server-port>\n", argv[0]);
++        exit(1);
++    }
++
++    unsigned short port = atoi(argv[1]);
++
++    // Create a listening socket (also called server socket) 
++
++    int servsock;
++    if ((servsock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
++        die("socket failed");
++
++    // Construct local address structure
++
++    struct sockaddr_in servaddr;
++    memset(&servaddr, 0, sizeof(servaddr));
++    servaddr.sin_family = AF_INET;
++    servaddr.sin_addr.s_addr = htonl(INADDR_ANY); // any network interface
++    servaddr.sin_port = htons(port);
++
++    // Bind to the local address
++
++    if (bind(servsock, (struct sockaddr *) &servaddr, sizeof(servaddr)) < 0)
++        die("bind failed");
++
++    // Start listening for incoming connections
++
++    if (listen(servsock, 5 /* queue size for connection requests */ ) < 0)
++        die("listen failed");
++
++    int r;
++    char buf[10];
++
++    int clntsock;
++    socklen_t clntlen;
++    struct sockaddr_in clntaddr;
++
++    while (1) {
++
++        // Accept an incoming connection
++
++        fprintf(stderr, "waiting for client ... ");
++
++        clntlen = sizeof(clntaddr); // initialize the in-out parameter
++
++        if ((clntsock = accept(servsock,
++                        (struct sockaddr *) &clntaddr, &clntlen)) < 0)
++            die("accept failed");
++
++        // accept() returned a connected socket (also called client socket)
++        // and filled in the client's address into clntaddr
++
++        fprintf(stderr, "client ip: %s\n", inet_ntoa(clntaddr.sin_addr));
++
++        // Receive msg from client, capitalize the 1st char, send it back
++
++        while ((r = recv(clntsock, buf, sizeof(buf), 0)) > 0) {
++            *buf = toupper(*buf);
++            if (send(clntsock, buf, r, 0) != r) {
++                fprintf(stderr, "ERR: send failed\n");
++                break;
++            }
++        }
++        if (r < 0) {
++            fprintf(stderr, "ERR: recv failed\n");
++        }
++
++        // Client closed the connection (r==0) or there was an error
++        // Either way, close the client socket and go back to accept()
++
++        close(clntsock);
++    }
++}
+-- 
+2.17.1
+
+
+From b22bce6fe260346317704cf32451c7eb8420de7c Mon Sep 17 00:00:00 2001
+From: Brennen Bickford <btb2125@columbia.edu>
+Date: Sun, 4 Apr 2021 14:02:00 -0400
+Subject: [PATCH 2/6] Got part 1 working, with some errors
+
+---
+ part1/Makefile            |  11 ++-
+ part1/mdb-lookup-server.c | 180 +++++++++++++++++++++++---------------
+ part1/mdb.c               |  51 +++++++++++
+ part1/mdb.h               |   3 +
+ part1/tcp-echo-server.c   |  94 --------------------
+ 5 files changed, 173 insertions(+), 166 deletions(-)
+ create mode 100644 part1/mdb.c
+ delete mode 100644 part1/tcp-echo-server.c
+
+diff --git a/part1/Makefile b/part1/Makefile
+index 8d7a98d..1055d4a 100644
+--- a/part1/Makefile
++++ b/part1/Makefile
+@@ -14,17 +14,24 @@ LDFLAGS = -g -L../../lab3/solutions/part1
+ LDLIBS = -lmylist
+ 
+ .PHONY: default
+-default: mdb-lookup-server
++default: mdb.o mdb-lookup-server 
++
++mdb-lookup-server: mdb.o
+ 
+ # header dependency
+ mdb-lookup-server.o: mdb.h
+ 
++mdb.o: mdb.h
++
+ .PHONY: clean
+ clean:
+ 	rm -f *.o *~ a.out core mdb-lookup-server
+ .PHONY: run
+ run: clean default
+-	./mdb-lookup-server 8888
++	./mdb-lookup-server my-mdb 8888
+ .PHONY: all
+ all: clean default
+ 
++.PHONY: vg
++vg: clean default
++	valgrind --leak-check=yes ./mdb-lookup-server my-mdb 8888
+diff --git a/part1/mdb-lookup-server.c b/part1/mdb-lookup-server.c
+index 1ca611a..cbad063 100644
+--- a/part1/mdb-lookup-server.c
++++ b/part1/mdb-lookup-server.c
+@@ -19,22 +19,24 @@
+ #define KeyMax 5
+ 
+ static void die(const char *s) { perror(s); exit(1); }
++ int loadmdb(FILE *fp, struct List *dest);
++ void freemdb(struct List *list);
+ 
+ int main(int argc, char **argv)
+ {
+-    if (argc != 2) {
+-        fprintf(stderr, "usage: %s <server-port>\n", argv[0]);
++    if (argc != 3) {
++        fprintf(stderr, "usage: %s <database>  <server-port>\n", argv[0]);
+         exit(1);
+     }
+-
+-    unsigned short port = atoi(argv[1]);
+-
++printf("1\n");
++    unsigned short port = atoi(argv[2]);
+     // Create a listening socket (also called server socket) 
+ 
+     int servsock;
+     if ((servsock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+         die("socket failed");
+ 
++printf("1\n");
+     // Construct local address structure
+ 
+     struct sockaddr_in servaddr;
+@@ -48,11 +50,13 @@ int main(int argc, char **argv)
+     if (bind(servsock, (struct sockaddr *) &servaddr, sizeof(servaddr)) < 0)
+         die("bind failed");
+ 
++printf("1\n");
+     // Start listening for incoming connections
+ 
+     if (listen(servsock, 5 /* queue size for connection requests */ ) < 0)
+         die("listen failed");
+ 
++printf("1\n");
+     int r;
+     char buf[10];
+ 
+@@ -71,7 +75,8 @@ int main(int argc, char **argv)
+         if ((clntsock = accept(servsock,
+                         (struct sockaddr *) &clntaddr, &clntlen)) < 0)
+             die("accept failed");
+-
++printf("1\n");
++	FILE *input = fdopen(clntsock, "r"); ///// i added this
+         // accept() returned a connected socket (also called client socket)
+         // and filled in the client's address into clntaddr
+ 
+@@ -79,83 +84,118 @@ int main(int argc, char **argv)
+ 
+ 
+   char *filename = argv[1];
+-    FILE *fp = fopen("my-mdb", "rb");
++    FILE *fp = fopen(filename, "rb");
+     if (fp == NULL)
+         die(filename);
++printf("4\n");
+ 
+     /*
+      * read all records into memory
+      */
+-////////////////////////////////////////////////////////////////////////////////////////////////
+-    struct List list;
+-    initList(&list);
+-
+-    fclose(fp);
+-
+-    /*
+-     * lookup loop
+-     */
+-
+-    char line[1000];
+-    char key[KeyMax + 1];
+-
+-    printf("lookup: ");
+-    fflush(stdout);
+-    while (fgets(line, sizeof(line), stdin) != NULL) {
+-
+-        // must null-terminate the string manually after strncpy().
+-        strncpy(key, line, sizeof(key) - 1);
+-        key[sizeof(key) - 1] = '\0';
+-
+-        // if newline is there, remove it.
+-        size_t last = strlen(key) - 1;
+-     if (key[last] == '\n')
+-            key[last] = '\0';
+-
+-        // traverse the list, printing out the matching records
+-        struct Node *node = list.head;
+-        int recNo = 1;
+-        while (node) {
+-            struct MdbRec *rec = (struct MdbRec *)node->data;
+-            if (strstr(rec->name, key) || strstr(rec->msg, key)) {
+-                printf("%4d: {%s} said {%s}\n", recNo, rec->name, rec->msg);
+-            }
+-            node = node->next;
+-            recNo++;
+-        }
+-
+-        printf("\nlookup: ");
+-        fflush(stdout);
+-    }
+-
+-    // see if fgets() produced error
+-    if (ferror(stdin))
+-        die("stdin");
+-
+-    /*
+-     * clean up and quit
+-     */
+-
+-//////////////////////////////////////////////////////////////////////////////////////////////
+-
+-
+ 
+         // Receive msg from client, capitalize the 1st char, send it back
+ 
+         while ((r = recv(clntsock, buf, sizeof(buf), 0)) > 0) {
+-            *buf = toupper(*buf);
+-            if (send(clntsock, buf, r, 0) != r) {
+-                fprintf(stderr, "ERR: send failed\n");
+-                break;
+-            }
+-        }
+-        if (r < 0) {
+-            fprintf(stderr, "ERR: recv failed\n");
+-        }
++		/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
++
++	 	   char *filename = argv[1];
++		    FILE *fp = fopen(filename, "rb");
++		    if (fp == NULL) 
++	        die(filename);
++		
++	printf("5\n");
++	printf(buf);
++	    /*
++	     * read all records into memory
++	     */
++	
++	    struct List list;
++	    initList(&list);
++	
++	    int loaded = loadmdb(fp, &list);
++	    if (loaded < 0)
++	        die("loadmdb");
++	    
++	printf("6\n");
++	    fclose(fp);
++	
++	    /*
++	     * lookup loop
++	     */
++	
++	//    char line[1000];
++		    char key[KeyMax + 1];
++	
++	    fflush(stdout);
++		//    while (fgets(line, sizeof(line), stdin) != NULL) {
++	    
++	
++	printf("7\n");
++	        // must null-terminate the string manually after strncpy().
++	        strncpy(key, buf, sizeof(key) - 1);
++	        key[sizeof(key) - 1] = '\0';
++	
++	        // if newline is there, remove it.
++	        size_t last = strlen(key) - 1;
++			        if (key[last] == '\n')
++	            key[last] = '\0';
++				
++	        // traverse the list, printing out the matching records
++	        struct Node *node = list.head;
++	        int recNo = 1;
++	printf("8\n");
++	
++	        while (node) {
++	
++	printf("9\n");
++	            struct MdbRec *rec = (struct MdbRec *)node->data;
++	            if (strstr(rec->name, key) || strstr(rec->msg, key)) {
++	//	char* output; 
++			int msglen;
++			char output[10000];
++	                msglen =snprintf(output, 80, "%4d: {%s} said {%s}\n", recNo, rec->name, rec->msg);
++	
++	printf("10\n");
++	
++		  if (send(clntsock, output, msglen, 0)<0) {
++	                fprintf(stderr, "ERR: send failed\n");
++	                break;
++	            }
++	        
++//	        if (r < 0) {
++//	            fprintf(stderr, "ERR: recv failed\n");
++//	        }
++	        }    
++	printf("11\n");
++	        node = node->next;            
++		recNo++;
++	}
++	
++	        
++	
++	printf("12\n");
++	//      printf("\nlookup: ");
++	        fflush(stdout);
++	    freemdb(&list);
++	    
++	    // see if fgets() produced error
++	    if (ferror(stdin)) 
++	        die("stdin");
++	
++	    /*
++	     * clean up and quit
++	     */
++	}
++	
++//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
++          
++fclose(input);
++}
++printf("13\n");
+ 
+         // Client closed the connection (r==0) or there was an error
+         // Either way, close the client socket and go back to accept()
+ 
+         close(clntsock);
+     }
+-}
++
+diff --git a/part1/mdb.c b/part1/mdb.c
+new file mode 100644
+index 0000000..26a9548
+--- /dev/null
++++ b/part1/mdb.c
+@@ -0,0 +1,51 @@
++/*
++ * mdb.c
++ */
++
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++
++#include "mylist.h"
++#include "mdb.h"
++
++int loadmdb(FILE *fp, struct List *dest) 
++{
++    /*
++     * read all records into memory
++     */
++
++    struct MdbRec r;
++    struct Node *node = NULL;
++    int count = 0;
++
++    while (fread(&r, sizeof(r), 1, fp) == 1) {
++
++        // allocate memory for a new record and copy into it the one
++        // that was just read from the database.
++        struct MdbRec *rec = (struct MdbRec *)malloc(sizeof(r));
++        if (!rec)
++            return -1;
++        memcpy(rec, &r, sizeof(r));
++
++        // add the record to the linked list.
++        node = addAfter(dest, node, rec);
++        if (node == NULL) 
++            return -1;
++
++        count++;
++    }
++
++    // see if fread() produced error
++    if (ferror(fp)) 
++        return -1;
++
++    return count;
++}
++
++void freemdb(struct List *list) 
++{
++    // free all the records
++    traverseList(list, &free);
++    removeAllNodes(list);
++}
+diff --git a/part1/mdb.h b/part1/mdb.h
+index 5a30b8d..89b658e 100644
+--- a/part1/mdb.h
++++ b/part1/mdb.h
+@@ -11,5 +11,8 @@ struct MdbRec {
+     char  msg[24];
+ };
+ 
++int loadmdb(FILE *fp, struct List *dest);
++void freemdb(struct List *list);
++
+ #endif /* _MDB_H_ */
+ 
+diff --git a/part1/tcp-echo-server.c b/part1/tcp-echo-server.c
+deleted file mode 100644
+index ac02540..0000000
+--- a/part1/tcp-echo-server.c
++++ /dev/null
+@@ -1,94 +0,0 @@
+-/*
+- * tcp-echo-server.c
+- */
+-
+-#include <ctype.h>
+-#include <stdio.h>
+-#include <stdlib.h>
+-#include <string.h>
+-#include <assert.h>
+-#include <unistd.h>
+-#include <sys/wait.h>
+-#include <sys/stat.h>
+-#include <arpa/inet.h>
+-#include <sys/types.h>
+-#include <sys/socket.h>
+-
+-static void die(const char *s) { perror(s); exit(1); }
+-
+-int main(int argc, char **argv)
+-{
+-    if (argc != 2) {
+-        fprintf(stderr, "usage: %s <server-port>\n", argv[0]);
+-        exit(1);
+-    }
+-
+-    unsigned short port = atoi(argv[1]);
+-
+-    // Create a listening socket (also called server socket) 
+-
+-    int servsock;
+-    if ((servsock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+-        die("socket failed");
+-
+-    // Construct local address structure
+-
+-    struct sockaddr_in servaddr;
+-    memset(&servaddr, 0, sizeof(servaddr));
+-    servaddr.sin_family = AF_INET;
+-    servaddr.sin_addr.s_addr = htonl(INADDR_ANY); // any network interface
+-    servaddr.sin_port = htons(port);
+-
+-    // Bind to the local address
+-
+-    if (bind(servsock, (struct sockaddr *) &servaddr, sizeof(servaddr)) < 0)
+-        die("bind failed");
+-
+-    // Start listening for incoming connections
+-
+-    if (listen(servsock, 5 /* queue size for connection requests */ ) < 0)
+-        die("listen failed");
+-
+-    int r;
+-    char buf[10];
+-
+-    int clntsock;
+-    socklen_t clntlen;
+-    struct sockaddr_in clntaddr;
+-
+-    while (1) {
+-
+-        // Accept an incoming connection
+-
+-        fprintf(stderr, "waiting for client ... ");
+-
+-        clntlen = sizeof(clntaddr); // initialize the in-out parameter
+-
+-        if ((clntsock = accept(servsock,
+-                        (struct sockaddr *) &clntaddr, &clntlen)) < 0)
+-            die("accept failed");
+-
+-        // accept() returned a connected socket (also called client socket)
+-        // and filled in the client's address into clntaddr
+-
+-        fprintf(stderr, "client ip: %s\n", inet_ntoa(clntaddr.sin_addr));
+-
+-        // Receive msg from client, capitalize the 1st char, send it back
+-
+-        while ((r = recv(clntsock, buf, sizeof(buf), 0)) > 0) {
+-            *buf = toupper(*buf);
+-            if (send(clntsock, buf, r, 0) != r) {
+-                fprintf(stderr, "ERR: send failed\n");
+-                break;
+-            }
+-        }
+-        if (r < 0) {
+-            fprintf(stderr, "ERR: recv failed\n");
+-        }
+-
+-        // Client closed the connection (r==0) or there was an error
+-        // Either way, close the client socket and go back to accept()
+-
+-        close(clntsock);
+-    }
+-}
+-- 
+2.17.1
+
+
+From 0e6bbcf357c3bf362b2775d4ef7358e98add74d4 Mon Sep 17 00:00:00 2001
+From: Brennen Bickford <btb2125@columbia.edu>
+Date: Mon, 5 Apr 2021 22:45:55 -0400
+Subject: [PATCH 3/6] Got part 2 working
+
+---
+ part1/mdb-lookup-server.c |   6 +-
+ part2/Makefile            |  30 +++++++++
+ part2/http-client.c       | 129 ++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 162 insertions(+), 3 deletions(-)
+ create mode 100644 part2/Makefile
+ create mode 100644 part2/http-client.c
+
+diff --git a/part1/mdb-lookup-server.c b/part1/mdb-lookup-server.c
+index cbad063..edb8821 100644
+--- a/part1/mdb-lookup-server.c
++++ b/part1/mdb-lookup-server.c
+@@ -99,9 +99,9 @@ printf("4\n");
+ 		/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+ 
+ 	 	   char *filename = argv[1];
+-		    FILE *fp = fopen(filename, "rb");
+-		    if (fp == NULL) 
+-	        die(filename);
++		   FILE *fp = fopen(filename, "rb");
++		   if (fp == NULL) 
++	     		   die(filename);
+ 		
+ 	printf("5\n");
+ 	printf(buf);
+diff --git a/part2/Makefile b/part2/Makefile
+new file mode 100644
+index 0000000..cc0c9fe
+--- /dev/null
++++ b/part2/Makefile
+@@ -0,0 +1,30 @@
++
++CXX = g++
++
++INCLUDES = -I../../lab3/solutions/part1
++CFLAGS   = -g -Wall $(INCLUDES)
++CXXFLAGS = -g -Wall $(INCLUDES)
++
++LDFLAGS = -g -L../../lab3/solutions/part1
++LDLIBS = -lmylist
++
++.PHONY: default
++default: http-client 
++
++http-client: 
++
++.PHONY: clean
++clean:
++	rm -f *.o *~ a.out core http-client *.html
++.PHONY: run
++run: clean default
++	./http-client www.gnu.org 80 /software/make/manual/make.html
++.PHONY: run2
++run2: clean default
++	./http-client 2.bp.blogspot.com 80 /-uIjf8HNiAH0/WuvaaTgCGII/AAAAAAAAMCs/E0VWLxv50WATe7P54dWQq6KLpcKx6T3gACLcBGAs/s200/Screenshot%2Bfrom%2B2018-05-04%2B00-58-16.png
++.PHONY: all
++all: clean default
++
++.PHONY: vg
++vg: clean default
++	valgrind --leak-check=yes ./http-client www.gnu.org 80 /software/make/manual/make.html
+diff --git a/part2/http-client.c b/part2/http-client.c
+new file mode 100644
+index 0000000..d0b146f
+--- /dev/null
++++ b/part2/http-client.c
+@@ -0,0 +1,129 @@
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++#include <assert.h>
++#include <unistd.h>
++#include <sys/wait.h>
++#include <sys/stat.h>
++#include <arpa/inet.h>
++#include <sys/types.h>
++#include <sys/socket.h>
++#include <netinet/in.h>
++#include <netdb.h>
++
++//extern int h_errno;
++//struct hostent *gethostbyname(const char *name);
++
++static void die(const char *s) { perror(s); exit(1); }
++
++int main(int argc, char **argv)
++{
++	if (argc != 4) {
++		fprintf(stderr, "usage: %s <server-ip> <server-port>\n",
++		argv[0]);
++		exit(1);
++	}
++	
++	char *serverName = argv[1];
++	struct hostent *he;
++	// get server ip from server name
++	if ((he = gethostbyname(serverName)) == NULL) {
++	die("gethostbyname failed");
++	}
++	char *serverIP = inet_ntoa(*(struct in_addr *)he->h_addr);
++
++	unsigned short port = atoi(argv[2]);
++	char *filename = argv[3];
++	
++	//Me parsing filename
++	char *newFilename = (strrchr(filename, '/') +1);
++	FILE * newFile = fopen(newFilename, "w+");
++
++	int sock; // socket descriptor
++	if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
++		die("socket failed");
++
++    // Construct a server address structure
++	struct sockaddr_in servaddr;
++	memset(&servaddr, 0, sizeof(servaddr)); // must zero out the structure
++	servaddr.sin_family      = AF_INET;
++	servaddr.sin_addr.s_addr = inet_addr(serverIP);
++	servaddr.sin_port        = htons(port); // must be in network byte order
++
++// Establish a TCP connection to the server
++
++	if (connect(sock, (struct sockaddr *) &servaddr, sizeof(servaddr)) < 0)
++		die("connect failed");
++
++    // Read a line from stdin and send it to the server
++	char req[300] = "GET ";
++	char *http= " HTTP/1.0";
++	char *newLine = "\r\n";
++	char *host= "Host: ";
++	char *colon= ":";
++	
++	strncat(req,filename, strlen(filename));
++	strncat(req,http, strlen(http));
++	strncat(req,newLine, strlen(newLine));
++	strncat(req, host, strlen(host));
++	strncat(req,serverName, strlen(serverName));
++	strncat(req,colon, strlen(colon));
++	strncat(req,argv[2], strlen(argv[2]));
++	
++	strncat(req,newLine, strlen(newLine));
++
++	strncat(req,newLine, strlen(newLine));
++//	printf("%s\n", req);
++
++
++
++	size_t len = strlen(req);
++
++	if (send(sock, req, len, 0) != len)
++		die("send failed");
++
++	char buf[4096];
++	int r;
++	FILE *input= fdopen(sock,"r");
++	int boo =1;
++	int i=0;
++
++	while(boo){
++	fgets(buf, sizeof(buf), input);
++
++		if (i==0){
++			if(strstr(buf, "200")){
++			//	printf("OKAY\n");
++			}
++			else if(strstr(buf, "404")){
++				die("404 error");
++			}
++			else{
++				die("Connection Error");
++			}
++		}
++		i++;
++		if ((strlen(buf) == 2) &&(strcmp(buf ,"/r/n/"))){
++//			printf("found\n");
++			boo=0;
++		}
++	}	
++	while((r = fread(buf, 1, sizeof(buf), input))>0){
++		if (r < 0)
++			die("recv failed");
++		else if (r == 0)
++			die("connection closed prematurely");
++
++		fwrite(buf, 1, r,newFile);	
++
++		}
++	
++
++
++	fclose(newFile);
++        fclose(input);
++
++	close(sock);
++	return 0;
++}
++
+-- 
+2.17.1
+
+
+From be45790b98439ba5d2533776030543b9953ef8f1 Mon Sep 17 00:00:00 2001
+From: Brennen Bickford <btb2125@columbia.edu>
+Date: Tue, 6 Apr 2021 11:59:23 -0400
+Subject: [PATCH 4/6] Got part 1 working properly
+
+---
+ part1/mdb-lookup-server.c | 269 +++++++++++++++++---------------------
+ part2/Makefile            |   2 +-
+ part2/http-client.c       |   8 +-
+ 3 files changed, 121 insertions(+), 158 deletions(-)
+
+diff --git a/part1/mdb-lookup-server.c b/part1/mdb-lookup-server.c
+index edb8821..0ef4b10 100644
+--- a/part1/mdb-lookup-server.c
++++ b/part1/mdb-lookup-server.c
+@@ -19,183 +19,148 @@
+ #define KeyMax 5
+ 
+ static void die(const char *s) { perror(s); exit(1); }
+- int loadmdb(FILE *fp, struct List *dest);
+- void freemdb(struct List *list);
++int loadmdb(FILE *fp, struct List *dest);
++void freemdb(struct List *list);
+ 
+ int main(int argc, char **argv)
+ {
+-    if (argc != 3) {
+-        fprintf(stderr, "usage: %s <database>  <server-port>\n", argv[0]);
+-        exit(1);
+-    }
+-printf("1\n");
+-    unsigned short port = atoi(argv[2]);
+-    // Create a listening socket (also called server socket) 
+ 
+-    int servsock;
+-    if ((servsock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+-        die("socket failed");
++	// ignore SIGPIPE so that we don’t terminate when we call
++	// send() on a disconnected socket.
++	if (signal(SIGPIPE, SIG_IGN) == SIG_ERR)
++		die("signal() failed");
+ 
+-printf("1\n");
+-    // Construct local address structure
++	if (argc != 3) {
++		fprintf(stderr, "usage: %s <database>  <server-port>\n", argv[0]);
++		exit(1);
++	}
++	unsigned short port = atoi(argv[2]);
++	// Create a listening socket (also called server socket) 
++
++	int servsock;
++	if ((servsock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
++		die("socket failed");
+ 
+-    struct sockaddr_in servaddr;
+-    memset(&servaddr, 0, sizeof(servaddr));
+-    servaddr.sin_family = AF_INET;
+-    servaddr.sin_addr.s_addr = htonl(INADDR_ANY); // any network interface
+-    servaddr.sin_port = htons(port);
++	// Construct local address structure
+ 
+-    // Bind to the local address
++	struct sockaddr_in servaddr;
++	memset(&servaddr, 0, sizeof(servaddr));
++	servaddr.sin_family = AF_INET;
++	servaddr.sin_addr.s_addr = htonl(INADDR_ANY); // any network interface
++	servaddr.sin_port = htons(port);
+ 
+-    if (bind(servsock, (struct sockaddr *) &servaddr, sizeof(servaddr)) < 0)
+-        die("bind failed");
++	// Bind to the local address
+ 
+-printf("1\n");
+-    // Start listening for incoming connections
++	if (bind(servsock, (struct sockaddr *) &servaddr, sizeof(servaddr)) < 0)
++		die("bind failed");
+ 
+-    if (listen(servsock, 5 /* queue size for connection requests */ ) < 0)
+-        die("listen failed");
++	// Start listening for incoming connections
+ 
+-printf("1\n");
+-    int r;
+-    char buf[10];
++	if (listen(servsock, 5 /* queue size for connection requests */ ) < 0)
++		die("listen failed");
+ 
+-    int clntsock;
+-    socklen_t clntlen;
+-    struct sockaddr_in clntaddr;
++	int r;
++	char buf[10];
+ 
+-    while (1) {
++	int clntsock;
++	socklen_t clntlen;
++	struct sockaddr_in clntaddr;
+ 
+-        // Accept an incoming connection
++	while (1) {
+ 
+-        fprintf(stderr, "waiting for client ... ");
++		// Accept an incoming connection
+ 
+-        clntlen = sizeof(clntaddr); // initialize the in-out parameter
++		fprintf(stderr, "waiting for client ... ");
++		clntlen = sizeof(clntaddr); // initialize the in-out parameter
+ 
+-        if ((clntsock = accept(servsock,
+-                        (struct sockaddr *) &clntaddr, &clntlen)) < 0)
+-            die("accept failed");
+-printf("1\n");
+-	FILE *input = fdopen(clntsock, "r"); ///// i added this
+-        // accept() returned a connected socket (also called client socket)
+-        // and filled in the client's address into clntaddr
++		if ((clntsock = accept(servsock,
++						(struct sockaddr *) &clntaddr, &clntlen)) < 0)
++			die("accept failed");
+ 
+-        fprintf(stderr, "client ip: %s\n", inet_ntoa(clntaddr.sin_addr));
++		fprintf(stderr, "client ip: %s\n", inet_ntoa(clntaddr.sin_addr));
+ 
+ 
+-  char *filename = argv[1];
+-    FILE *fp = fopen(filename, "rb");
+-    if (fp == NULL)
+-        die(filename);
+-printf("4\n");
++		char *filename = argv[1];
++		FILE *fp = fopen(filename, "rb");
++		if (fp == NULL)
++			die(filename);
+ 
+-    /*
+-     * read all records into memory
+-     */
++		FILE *input = fdopen(clntsock, "r"); ///// i added this
++		/*
++		 * read all records into memory
++		 */
+ 
+-        // Receive msg from client, capitalize the 1st char, send it back
++		// Receive msg from client, capitalize the 1st char, send it back
+ 
+-        while ((r = recv(clntsock, buf, sizeof(buf), 0)) > 0) {
++		// while ((r = recv(clntsock, buf, sizeof(buf), 0)) > 0) {
+ 		/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+ 
+-	 	   char *filename = argv[1];
+-		   FILE *fp = fopen(filename, "rb");
+-		   if (fp == NULL) 
+-	     		   die(filename);
+-		
+-	printf("5\n");
+-	printf(buf);
+-	    /*
+-	     * read all records into memory
+-	     */
+-	
+-	    struct List list;
+-	    initList(&list);
+-	
+-	    int loaded = loadmdb(fp, &list);
+-	    if (loaded < 0)
+-	        die("loadmdb");
+-	    
+-	printf("6\n");
+-	    fclose(fp);
+-	
+-	    /*
+-	     * lookup loop
+-	     */
+-	
+-	//    char line[1000];
+-		    char key[KeyMax + 1];
+-	
+-	    fflush(stdout);
+-		//    while (fgets(line, sizeof(line), stdin) != NULL) {
+-	    
+-	
+-	printf("7\n");
+-	        // must null-terminate the string manually after strncpy().
+-	        strncpy(key, buf, sizeof(key) - 1);
+-	        key[sizeof(key) - 1] = '\0';
+-	
+-	        // if newline is there, remove it.
+-	        size_t last = strlen(key) - 1;
+-			        if (key[last] == '\n')
+-	            key[last] = '\0';
+-				
+-	        // traverse the list, printing out the matching records
+-	        struct Node *node = list.head;
+-	        int recNo = 1;
+-	printf("8\n");
+-	
+-	        while (node) {
+-	
+-	printf("9\n");
+-	            struct MdbRec *rec = (struct MdbRec *)node->data;
+-	            if (strstr(rec->name, key) || strstr(rec->msg, key)) {
+-	//	char* output; 
+-			int msglen;
+-			char output[10000];
+-	                msglen =snprintf(output, 80, "%4d: {%s} said {%s}\n", recNo, rec->name, rec->msg);
+-	
+-	printf("10\n");
+-	
+-		  if (send(clntsock, output, msglen, 0)<0) {
+-	                fprintf(stderr, "ERR: send failed\n");
+-	                break;
+-	            }
+-	        
+-//	        if (r < 0) {
+-//	            fprintf(stderr, "ERR: recv failed\n");
+-//	        }
+-	        }    
+-	printf("11\n");
+-	        node = node->next;            
+-		recNo++;
++
++		struct List list;
++		initList(&list);
++
++		int loaded = loadmdb(fp, &list);
++		if (loaded < 0)
++			die("loadmdb");
++
++		fclose(fp);
++
++
++		while(fgets(buf, sizeof(buf), input)){	
++			// see if fgets() produced error
++			if (ferror(stdin)) 
++				die("stdin");
++
++			printf(buf);
++
++			char key[KeyMax + 1];
++
++			fflush(stdout);
++
++
++			// must null-terminate the string manually after strncpy().
++			strncpy(key, buf, sizeof(key) - 1);
++			key[sizeof(key) - 1] = '\0';
++
++			// if newline is there, remove it.
++			size_t last = strlen(key) - 1;
++			if (key[last] == '\n')
++				key[last] = '\0';
++
++			// traverse the list, printing out the matching records
++			struct Node *node = list.head;
++			int recNo = 1;
++
++			while (node) {
++
++				struct MdbRec *rec = (struct MdbRec *)node->data;
++				if (strstr(rec->name, key) || strstr(rec->msg, key)) {
++					int msglen;
++					char output[10000];
++					msglen =snprintf(output, 80, "%4d: {%s} said {%s}\n", recNo, rec->name, rec->msg);
++
++
++					if (send(clntsock, output, msglen, 0)<0) {
++						fprintf(stderr, "ERR: send failed\n");
++						break;
++					}
++				}
++
++				node = node->next;            
++				recNo++;
++			}
++
++		}        
++
++
++		fflush(stdout);
++		freemdb(&list);
++		fclose(input);
+ 	}
+-	
+-	        
+-	
+-	printf("12\n");
+-	//      printf("\nlookup: ");
+-	        fflush(stdout);
+-	    freemdb(&list);
+-	    
+-	    // see if fgets() produced error
+-	    if (ferror(stdin)) 
+-	        die("stdin");
+-	
+-	    /*
+-	     * clean up and quit
+-	     */
++
++	// Client closed the connection (r==0) or there was an error
++	// Either way, close the client socket and go back to accept()
++
++	close(clntsock);
+ 	}
+-	
+-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+-          
+-fclose(input);
+-}
+-printf("13\n");
+-
+-        // Client closed the connection (r==0) or there was an error
+-        // Either way, close the client socket and go back to accept()
+-
+-        close(clntsock);
+-    }
+ 
+diff --git a/part2/Makefile b/part2/Makefile
+index cc0c9fe..b4142bb 100644
+--- a/part2/Makefile
++++ b/part2/Makefile
+@@ -21,7 +21,7 @@ run: clean default
+ 	./http-client www.gnu.org 80 /software/make/manual/make.html
+ .PHONY: run2
+ run2: clean default
+-	./http-client 2.bp.blogspot.com 80 /-uIjf8HNiAH0/WuvaaTgCGII/AAAAAAAAMCs/E0VWLxv50WATe7P54dWQq6KLpcKx6T3gACLcBGAs/s200/Screenshot%2Bfrom%2B2018-05-04%2B00-58-16.png
++	./http-client 2.bp.blogspot.com 80 /blah/-uIjf8HNiAH0/WuvaaTgCGII/AAAAAAAAMCs/E0VWLxv50WATe7P54dWQq6KLpcKx6T3gACLcBGAs/s200/Screenshot%2Bfrom%2B2018-05-04%2B00-58-16.png
+ .PHONY: all
+ all: clean default
+ 
+diff --git a/part2/http-client.c b/part2/http-client.c
+index d0b146f..586dfd9 100644
+--- a/part2/http-client.c
++++ b/part2/http-client.c
+@@ -93,14 +93,12 @@ int main(int argc, char **argv)
+ 
+ 		if (i==0){
+ 			if(strstr(buf, "200")){
+-			//	printf("OKAY\n");
+-			}
+-			else if(strstr(buf, "404")){
+-				die("404 error");
+ 			}
+ 			else{
+-				die("Connection Error");
++				printf("%s/n", buf);
++				exit(1);
+ 			}
++		
+ 		}
+ 		i++;
+ 		if ((strlen(buf) == 2) &&(strcmp(buf ,"/r/n/"))){
+-- 
+2.17.1
+
+
+From dc2200a7a769ac1f62f552c466dbba3531c64291 Mon Sep 17 00:00:00 2001
+From: Brennen Bickford <btb2125@columbia.edu>
+Date: Tue, 6 Apr 2021 13:23:00 -0400
+Subject: [PATCH 5/6] Cleaned up code, error tested
+
+---
+ part1/mdb-lookup-server.c | 27 +++++++-------------------
+ part2/http-client.c       | 41 +++++++++++++--------------------------
+ 2 files changed, 21 insertions(+), 47 deletions(-)
+
+diff --git a/part1/mdb-lookup-server.c b/part1/mdb-lookup-server.c
+index 0ef4b10..f57d598 100644
+--- a/part1/mdb-lookup-server.c
++++ b/part1/mdb-lookup-server.c
+@@ -1,5 +1,4 @@
+ /*
+-
+  * tcp-echo-server.c
+  */
+ 
+@@ -19,8 +18,6 @@
+ #define KeyMax 5
+ 
+ static void die(const char *s) { perror(s); exit(1); }
+-int loadmdb(FILE *fp, struct List *dest);
+-void freemdb(struct List *list);
+ 
+ int main(int argc, char **argv)
+ {
+@@ -59,9 +56,7 @@ int main(int argc, char **argv)
+ 	if (listen(servsock, 5 /* queue size for connection requests */ ) < 0)
+ 		die("listen failed");
+ 
+-	int r;
+ 	char buf[10];
+-
+ 	int clntsock;
+ 	socklen_t clntlen;
+ 	struct sockaddr_in clntaddr;
+@@ -85,17 +80,13 @@ int main(int argc, char **argv)
+ 		if (fp == NULL)
+ 			die(filename);
+ 
+-		FILE *input = fdopen(clntsock, "r"); ///// i added this
++
+ 		/*
+ 		 * read all records into memory
+ 		 */
+ 
+ 		// Receive msg from client, capitalize the 1st char, send it back
+ 
+-		// while ((r = recv(clntsock, buf, sizeof(buf), 0)) > 0) {
+-		/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+-
+-
+ 		struct List list;
+ 		initList(&list);
+ 
+@@ -104,20 +95,20 @@ int main(int argc, char **argv)
+ 			die("loadmdb");
+ 
+ 		fclose(fp);
++		fflush(stdout);
+ 
++		FILE *input = fdopen(clntsock, "r"); //client socket input
+ 
+ 		while(fgets(buf, sizeof(buf), input)){	
++
+ 			// see if fgets() produced error
+ 			if (ferror(stdin)) 
+ 				die("stdin");
+ 
+-			printf(buf);
+-
+ 			char key[KeyMax + 1];
+ 
+ 			fflush(stdout);
+ 
+-
+ 			// must null-terminate the string manually after strncpy().
+ 			strncpy(key, buf, sizeof(key) - 1);
+ 			key[sizeof(key) - 1] = '\0';
+@@ -132,35 +123,31 @@ int main(int argc, char **argv)
+ 			int recNo = 1;
+ 
+ 			while (node) {
+-
+ 				struct MdbRec *rec = (struct MdbRec *)node->data;
+ 				if (strstr(rec->name, key) || strstr(rec->msg, key)) {
+ 					int msglen;
+-					char output[10000];
+-					msglen =snprintf(output, 80, "%4d: {%s} said {%s}\n", recNo, rec->name, rec->msg);
+-
++					char output[4096];
++					msglen=snprintf(output, 80, "%4d: {%s} said {%s}\n", recNo, rec->name, rec->msg);
+ 
+ 					if (send(clntsock, output, msglen, 0)<0) {
+ 						fprintf(stderr, "ERR: send failed\n");
+ 						break;
+ 					}
+ 				}
+-
+ 				node = node->next;            
+ 				recNo++;
+ 			}
+ 
+ 		}        
+ 
+-
+ 		fflush(stdout);
+ 		freemdb(&list);
+ 		fclose(input);
++	close(clntsock);
+ 	}
+ 
+ 	// Client closed the connection (r==0) or there was an error
+ 	// Either way, close the client socket and go back to accept()
+ 
+-	close(clntsock);
+ 	}
+ 
+diff --git a/part2/http-client.c b/part2/http-client.c
+index 586dfd9..54aee45 100644
+--- a/part2/http-client.c
++++ b/part2/http-client.c
+@@ -11,57 +11,55 @@
+ #include <netinet/in.h>
+ #include <netdb.h>
+ 
+-//extern int h_errno;
+-//struct hostent *gethostbyname(const char *name);
+-
+ static void die(const char *s) { perror(s); exit(1); }
+ 
+ int main(int argc, char **argv)
+ {
+ 	if (argc != 4) {
+ 		fprintf(stderr, "usage: %s <server-ip> <server-port>\n",
+-		argv[0]);
++				argv[0]);
+ 		exit(1);
+ 	}
+-	
++
+ 	char *serverName = argv[1];
+ 	struct hostent *he;
+ 	// get server ip from server name
+ 	if ((he = gethostbyname(serverName)) == NULL) {
+-	die("gethostbyname failed");
++		die("gethostbyname failed");
+ 	}
+ 	char *serverIP = inet_ntoa(*(struct in_addr *)he->h_addr);
+ 
+ 	unsigned short port = atoi(argv[2]);
+ 	char *filename = argv[3];
+-	
+-	//Me parsing filename
++
++	//parsing filename
+ 	char *newFilename = (strrchr(filename, '/') +1);
++	//creating file
+ 	FILE * newFile = fopen(newFilename, "w+");
+ 
+ 	int sock; // socket descriptor
+ 	if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+ 		die("socket failed");
+ 
+-    // Construct a server address structure
++	// Construct a server address structure
+ 	struct sockaddr_in servaddr;
+ 	memset(&servaddr, 0, sizeof(servaddr)); // must zero out the structure
+ 	servaddr.sin_family      = AF_INET;
+ 	servaddr.sin_addr.s_addr = inet_addr(serverIP);
+ 	servaddr.sin_port        = htons(port); // must be in network byte order
+ 
+-// Establish a TCP connection to the server
++	// Establish a TCP connection to the server
+ 
+ 	if (connect(sock, (struct sockaddr *) &servaddr, sizeof(servaddr)) < 0)
+ 		die("connect failed");
+ 
+-    // Read a line from stdin and send it to the server
++	// Read a line from stdin and send it to the server
+ 	char req[300] = "GET ";
+ 	char *http= " HTTP/1.0";
+ 	char *newLine = "\r\n";
+ 	char *host= "Host: ";
+ 	char *colon= ":";
+-	
++	//Assemble request to host
+ 	strncat(req,filename, strlen(filename));
+ 	strncat(req,http, strlen(http));
+ 	strncat(req,newLine, strlen(newLine));
+@@ -69,13 +67,8 @@ int main(int argc, char **argv)
+ 	strncat(req,serverName, strlen(serverName));
+ 	strncat(req,colon, strlen(colon));
+ 	strncat(req,argv[2], strlen(argv[2]));
+-	
+ 	strncat(req,newLine, strlen(newLine));
+-
+ 	strncat(req,newLine, strlen(newLine));
+-//	printf("%s\n", req);
+-
+-
+ 
+ 	size_t len = strlen(req);
+ 
+@@ -85,11 +78,11 @@ int main(int argc, char **argv)
+ 	char buf[4096];
+ 	int r;
+ 	FILE *input= fdopen(sock,"r");
+-	int boo =1;
++	int boo =1;//boolean to stop fgets()
+ 	int i=0;
+ 
+ 	while(boo){
+-	fgets(buf, sizeof(buf), input);
++		fgets(buf, sizeof(buf), input);
+ 
+ 		if (i==0){
+ 			if(strstr(buf, "200")){
+@@ -98,11 +91,9 @@ int main(int argc, char **argv)
+ 				printf("%s/n", buf);
+ 				exit(1);
+ 			}
+-		
+ 		}
+ 		i++;
+ 		if ((strlen(buf) == 2) &&(strcmp(buf ,"/r/n/"))){
+-//			printf("found\n");
+ 			boo=0;
+ 		}
+ 	}	
+@@ -113,14 +104,10 @@ int main(int argc, char **argv)
+ 			die("connection closed prematurely");
+ 
+ 		fwrite(buf, 1, r,newFile);	
+-
+-		}
+-	
+-
++	}
+ 
+ 	fclose(newFile);
+-        fclose(input);
+-
++	fclose(input);
+ 	close(sock);
+ 	return 0;
+ }
+-- 
+2.17.1
+
+
+From 68949e722ed7d45335166afddb8cdd481fe0c1c9 Mon Sep 17 00:00:00 2001
+From: Brennen Bickford <btb2125@columbia.edu>
+Date: Tue, 6 Apr 2021 18:56:23 -0400
+Subject: [PATCH 6/6] Code cleaned up and tested, ready to submit
+
+---
+ README.txt                | 5 +++--
+ part1/mdb-lookup-server.c | 6 ++----
+ 2 files changed, 5 insertions(+), 6 deletions(-)
+
+diff --git a/README.txt b/README.txt
+index 16f76a6..ab5db1d 100644
+--- a/README.txt
++++ b/README.txt
+@@ -4,14 +4,15 @@ Lab 6
+ 
+ 
+ Part 1
++Code should work as expected
+ 
+ 
+ 
+ 
+ 
+ 
+-part 2
+-
++Part 2
++Code should work as expected
+ 
+ 
+ 
+diff --git a/part1/mdb-lookup-server.c b/part1/mdb-lookup-server.c
+index f57d598..21011ae 100644
+--- a/part1/mdb-lookup-server.c
++++ b/part1/mdb-lookup-server.c
+@@ -143,11 +143,9 @@ int main(int argc, char **argv)
+ 		fflush(stdout);
+ 		freemdb(&list);
+ 		fclose(input);
+-	close(clntsock);
++		close(clntsock);
+ 	}
+ 
+-	// Client closed the connection (r==0) or there was an error
+-	// Either way, close the client socket and go back to accept()
+ 
+-	}
++}
+ 
+-- 
+2.17.1
+
